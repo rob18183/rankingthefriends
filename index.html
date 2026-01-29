@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ranking Your Friends</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app-header" id="app-header">
+        <h1>Ranking Your Friends</h1>
+        <p class="subtitle">
+          A playful party game: pick juicy questions, rank each other, and reveal the funniest results
+          round by round.
+        </p>
+        <p class="muted">
+          No accounts, no logins. The host locks the game, players send a short secret code,
+          and the host runs a big-screen style reveal.
+        </p>
+        <nav id="nav-bar" class="nav">
+          <button id="nav-setup" class="nav-btn">1. Setup</button>
+          <button id="nav-host" class="nav-btn">2. Collect Codes</button>
+        </nav>
+      </header>
+
+      <section id="view-setup" class="view">
+        <h2>Setup</h2>
+        <p class="muted">
+          Add players and questions. When you lock the game, the setup freezes and a share link
+          is generated for your players.
+        </p>
+        <div class="card">
+          <label class="field">
+            <span>Game title</span>
+            <input id="game-title" type="text" placeholder="Friday night rankings" />
+          </label>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <h3>Players</h3>
+            <div id="players-list" class="list"></div>
+            <button id="add-player" class="btn">Add player</button>
+          </div>
+          <div class="card">
+            <h3>Questions</h3>
+            <div id="questions-list" class="list"></div>
+            <button id="add-question" class="btn">Add question</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Lock the game</h3>
+          <p class="muted">
+            Locking freezes players and questions, and generates the share link.
+          </p>
+          <div class="actions">
+            <button id="finalize-game" class="btn primary">Lock game & create link</button>
+            <button id="go-host" class="btn">Go to collect codes</button>
+          </div>
+          <p id="setup-error" class="error hidden"></p>
+        </div>
+
+        <div id="finalized-panel" class="card hidden">
+          <h3>Share link</h3>
+          <div class="share-row">
+            <input id="share-url" type="text" readonly />
+            <button id="copy-share" class="btn">Copy</button>
+          </div>
+          <p class="muted">Send this link to each player.</p>
+          <h4>Game code (backup)</h4>
+          <textarea id="game-code" class="code-box" readonly></textarea>
+        </div>
+      </section>
+
+      <section id="view-player" class="view hidden">
+        <h2>Player</h2>
+        <p class="muted">
+          Pick your name, rank everyone for each question, then copy your secret code.
+        </p>
+        <div id="player-step-identity" class="card">
+          <label class="field">
+            <span>Select your name</span>
+            <select id="player-select"></select>
+          </label>
+          <div class="actions">
+            <button id="player-confirm" class="btn primary" disabled>Start</button>
+          </div>
+        </div>
+
+        <div id="player-step-questions" class="card hidden">
+          <div class="progress">
+            <span id="player-progress">0 / 0</span>
+          </div>
+          <div id="player-questions"></div>
+          <div class="actions">
+            <button id="next-question" class="btn">Next question</button>
+            <button id="player-finish" class="btn primary">Finish & get code</button>
+          </div>
+        </div>
+
+        <div id="player-step-submit" class="card hidden">
+          <h3>Thanks! Send this to your host</h3>
+          <p class="muted">Copy your secret code below and send it via WhatsApp or email.</p>
+          <div class="submission-line" id="submission-line-panel">
+            <label class="field">
+              <span>Your secret code</span>
+              <input id="submission-line" type="text" readonly />
+            </label>
+            <div class="actions">
+              <button id="copy-submission-line" class="btn primary">Copy code</button>
+            </div>
+          </div>
+          <p id="player-error" class="error hidden"></p>
+        </div>
+      </section>
+
+      <section id="view-host" class="view hidden">
+        <h2>Collect Codes</h2>
+        <p class="muted">
+          Paste each player's code below (one per line). When all are in, start the reveal.
+        </p>
+        <div class="card">
+          <h3>Paste codes</h3>
+          <p class="muted">Each line: <code>name:code</code></p>
+          <textarea id="import-text" class="code-box" placeholder="alice:abc123&#10;bob:def456"></textarea>
+          <div class="actions">
+            <button id="import-submit" class="btn primary">Import lines</button>
+          </div>
+          <p id="import-error" class="error hidden"></p>
+        </div>
+        <div class="card">
+          <h3>Submission status</h3>
+          <div id="submission-status" class="list"></div>
+        </div>
+        <div class="actions">
+          <button id="start-reveal" class="btn primary" disabled>Generate game night link</button>
+        </div>
+
+        <div id="reveal-link-panel" class="card hidden">
+          <h3>Game night link</h3>
+          <p class="muted">Open this on the big screen, or share as a QR code.</p>
+          <div class="share-row">
+            <input id="reveal-url" type="text" readonly />
+            <button id="copy-reveal" class="btn">Copy</button>
+          </div>
+          <div class="qr-wrap">
+            <canvas id="reveal-qr" width="220" height="220"></canvas>
+          </div>
+          <div class="actions">
+            <button id="open-reveal" class="btn primary">Open reveal</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-reveal" class="view hidden">
+        <h2>Reveal</h2>
+        <div id="reveal-fullscreen" class="card reveal-fullscreen">
+          <h3>Ready to present?</h3>
+          <p class="muted">Go fullscreen for the best vibe.</p>
+          <button id="reveal-enter-fullscreen" class="btn primary">Go fullscreen</button>
+          <button id="reveal-skip-fullscreen" class="btn">Continue without fullscreen</button>
+        </div>
+
+        <div id="reveal-stage" class="card reveal-stage">
+          <div id="reveal-prompt" class="reveal-prompt hidden">
+            <h3>Presenter, come forward</h3>
+            <p class="muted">Read the question out loud before the reveal begins.</p>
+          </div>
+          <div id="reveal-question-panel" class="hidden">
+            <h3 class="reveal-question">Question</h3>
+            <p id="reveal-question-text" class="reveal-question-text"></p>
+          </div>
+          <div id="reveal-ranking-panel" class="hidden">
+            <h3 class="reveal-question">Ranking</h3>
+            <ol id="round-reveal" class="leaderboard"></ol>
+          </div>
+          <div id="reveal-roundscore-panel" class="hidden">
+            <h3 class="reveal-question">Round score</h3>
+            <ol id="round-leaderboard" class="leaderboard"></ol>
+          </div>
+          <div id="reveal-total-panel" class="hidden">
+            <h3 class="reveal-question">Total score</h3>
+            <ol id="total-leaderboard" class="leaderboard"></ol>
+          </div>
+          <div class="actions">
+            <button id="reveal-prev" class="btn">Back</button>
+            <button id="reveal-next" class="btn primary">Next</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

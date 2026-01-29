@@ -1,0 +1,17 @@
+{
+  "name": "ranking-your-friends",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.3"
+  }
+}
