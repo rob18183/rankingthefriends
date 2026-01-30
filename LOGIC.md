@@ -16,32 +16,45 @@
 - If hash > 16,000 chars: block save and show error.
 
 ### 3) Derived helpers
-#### 3.1 Points per rank
+#### 3.1 Points per rank (for consensus)
 ```
 pointsForRank(rankIndex, totalPlayers) = totalPlayers - rankIndex
 // rankIndex is 0-based (0 => top rank)
 ```
 
-#### 3.2 Score a single submission
-Input: `ranking` (player ids ordered), `players`
-Output: map `{ playerId: points }`
+#### 3.2 Build consensus ranking
+Input: all submissions for that question  
+Output: map `{ playerId: points }` and a sorted order
 ```
-for i in 0..N-1:
-  points[ranking[i]] += pointsForRank(i, N)
+for each submission:
+  for i in 0..N-1:
+    consensusPoints[ranking[i]] += pointsForRank(i, N)
+
+consensusOrder = players sorted by consensusPoints desc, then name asc
 ```
 
-#### 3.3 Score a round (question)
-Input: all submissions for that question
-Output: `{ playerId: totalPoints }`
+#### 3.3 Score a single submission (guess score)
+Input: `ranking` (player ids ordered), `consensusOrder`  
+Output: `score` (higher is better)
 ```
-sum per player across all submissions
+distance = sum(abs(rankIndex - consensusIndex)) for each player
+maxDistance = sum(abs(i - (N - 1 - i))) for i in 0..N-1
+score = max(0, maxDistance - distance)
 ```
 
-#### 3.4 Overall totals
-Input: round scores
+#### 3.4 Score a round (question)
+Input: all submissions for that question  
+Output: `{ playerId: totalPoints }` where `playerId` is the submitter
+```
+for each submission:
+  totals[submission.playerId] += scoreSubmission(submission.ranking, consensusOrder)
+```
+
+#### 3.5 Overall totals
+Input: round scores  
 Output: `{ playerId: totalPoints }` across all questions
 
-#### 3.5 Ranking
+#### 3.6 Ranking
 - Sort by `points desc`, then by `player.name asc` for stability.
 - Assign ranks sequentially (no shared ranks).
 
