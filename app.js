@@ -493,7 +493,7 @@ function allSubmissionsIn() {
   return state.game.players.length > 0 && state.game.players.every((p) => state.game.submissions[p.id]);
 }
 
-function scoreRound(questionId) {
+function buildConsensusScores(questionId) {
   const totals = {};
   state.game.players.forEach((p) => (totals[p.id] = 0));
   Object.values(state.game.submissions).forEach((submission) => {
@@ -502,6 +502,38 @@ function scoreRound(questionId) {
     ranking.forEach((playerId, index) => {
       totals[playerId] += state.game.players.length - index;
     });
+  });
+  return totals;
+}
+
+function maxRankDistance(playerCount) {
+  let total = 0;
+  for (let i = 0; i < playerCount; i += 1) {
+    total += Math.abs(i - (playerCount - 1 - i));
+  }
+  return total;
+}
+
+function scoreRound(questionId) {
+  const totals = {};
+  state.game.players.forEach((p) => (totals[p.id] = 0));
+  const consensusScores = buildConsensusScores(questionId);
+  const consensusOrder = sortScores(consensusScores).map((row) => row.player.id);
+  if (!consensusOrder.length) return totals;
+  const consensusPositions = new Map();
+  consensusOrder.forEach((playerId, index) => {
+    consensusPositions.set(playerId, index);
+  });
+  const maxDistance = maxRankDistance(state.game.players.length);
+  Object.values(state.game.submissions).forEach((submission) => {
+    const ranking = submission.byQuestion[questionId];
+    if (!ranking) return;
+    const distance = ranking.reduce((sum, playerId, index) => {
+      const consensusIndex = consensusPositions.get(playerId);
+      if (consensusIndex === undefined) return sum;
+      return sum + Math.abs(index - consensusIndex);
+    }, 0);
+    totals[submission.playerId] += Math.max(0, maxDistance - distance);
   });
   return totals;
 }
@@ -530,9 +562,11 @@ function sortScores(scoreMap) {
 function renderReveal() {
   const question = state.game.questions[state.revealIndex] || { text: "No questions" };
   el.revealQuestionText.textContent = question.text || "Untitled question";
+  const consensusScores = question.id ? buildConsensusScores(question.id) : {};
+  const consensusOrder = sortScores(consensusScores).map((row) => row.player.id);
   const roundScores = question.id ? scoreRound(question.id) : {};
   const totalScores = scoreTotals();
-  renderRevealList(roundScores);
+  renderRevealList(consensusOrder);
   renderLeaderboard(el.roundLeaderboard, roundScores);
   renderLeaderboard(el.totalLeaderboard, totalScores);
   el.revealStage.classList.toggle("hidden", !state.revealFullscreenReady);
@@ -546,22 +580,22 @@ function renderReveal() {
     state.revealIndex >= state.game.questions.length - 1 && state.revealPhase === "totals";
 }
 
-function renderRevealList(scoreMap) {
+function renderRevealList(ranking) {
   el.roundReveal.innerHTML = "";
-  const rows = sortScores(scoreMap);
-  const total = rows.length;
+  const total = ranking.length;
   const revealCount =
     state.revealPhase === "reveal" ||
     state.revealPhase === "roundscore" ||
     state.revealPhase === "totals"
       ? Math.min(state.revealStep, total)
       : 0;
-  rows.forEach((row, index) => {
+  ranking.forEach((playerId, index) => {
+    const player = state.game.players.find((p) => p.id === playerId);
     const place = index + 1;
     const li = document.createElement("li");
     const revealFromBottom = index >= total - revealCount;
     if (revealFromBottom) {
-      li.textContent = `${place}. ${row.player.name}`;
+      li.textContent = `${place}. ${player ? player.name : "Unknown"}`;
     } else {
       li.textContent = `${place}. ...`;
     }

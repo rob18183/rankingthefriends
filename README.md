@@ -19,6 +19,18 @@ npm install
 npm run dev
 ```
 
+## Production build
+```
+npm run build
+npm run preview
+```
+
+## GitHub Pages deployment
+This project is configured for GitHub Pages via GitHub Actions. To publish:
+1. Push to `main`.
+2. In GitHub, set **Settings → Pages → Source** to **GitHub Actions**.
+3. The workflow builds the site and deploys the `dist/` folder.
+
 ## Documentation
 - `SPEC.md` – detailed product + flow spec
 - `LOGIC.md` – scoring + encoding logic
