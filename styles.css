@@ -43,6 +43,7 @@ body {
   display: flex;
   gap: 8px;
   margin-top: 12px;
+  flex-wrap: wrap;
 }
 
 .nav-btn {
@@ -96,10 +97,12 @@ body {
 .list-row {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .list-row input {
   flex: 1;
+  min-width: 0;
 }
 
 .btn {
@@ -124,10 +127,12 @@ body {
 .share-row {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .share-row input {
   flex: 1;
+  min-width: 0;
 }
 
 .qr-wrap {
@@ -234,6 +239,9 @@ select {
 }
 
 @media (max-width: 720px) {
+  .app {
+    padding: 24px 16px 64px;
+  }
   .actions {
     flex-direction: column;
   }
