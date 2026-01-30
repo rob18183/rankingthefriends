@@ -673,7 +673,6 @@ function renderAll() {
 
 el.navSetup.addEventListener("click", () => setView("setup"));
 el.navHost.addEventListener("click", () => setView("host"));
-el.navReveal.addEventListener("click", () => setView("reveal"));
 
 el.gameTitle.addEventListener("input", () => {
   state.game.title = el.gameTitle.value;
