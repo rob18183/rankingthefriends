@@ -26,10 +26,12 @@ npm run preview
 ```
 
 ## GitHub Pages deployment
-This project is configured for GitHub Pages via GitHub Actions. To publish:
+This project is configured for GitHub Pages via GitHub Actions. The production build outputs to `dist/`, which is generated during CI and not committed to the repo. To publish:
 1. Push to `main`.
 2. In GitHub, set **Settings → Pages → Source** to **GitHub Actions**.
 3. The workflow builds the site and deploys the `dist/` folder.
+
+If you are temporarily serving the repository root as a static site, the QR code library is loaded from a CDN, so the app still works without a bundled `dist/` output.
 
 ## Documentation
 - `SPEC.md` – detailed product + flow spec
