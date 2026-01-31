@@ -218,6 +218,10 @@ body {
   background: #fbf7ef;
 }
 
+.score-explain {
+  margin: 6px 0 12px;
+}
+
 .reveal-stage {
   min-height: 420px;
 }
