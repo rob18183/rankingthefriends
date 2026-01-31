@@ -16,6 +16,7 @@ const translations = {
     nav: {
       setup: "1. Setup",
       host: "2. Collect Codes",
+      inspiration: "3. Inspiration",
     },
     setup: {
       title: "Setup",
@@ -25,6 +26,10 @@ const translations = {
       gameTitlePlaceholder: "Friday night rankings",
       players: "Players",
       questions: "Questions",
+      suggestedTitle: "Suggested questions",
+      suggestedHint: "Pick from a quick starter list or jump to the inspiration page for more ideas.",
+      suggestedAddTop: "Add top 10",
+      suggestedMore: "More inspiration",
       lockTitle: "Lock the game",
       lockDescription: "Locking freezes players and questions, and generates the share link.",
       lockButton: "Lock game & create link",
@@ -94,6 +99,7 @@ const translations = {
     labels: {
       addPlayer: "Add player",
       addQuestion: "Add question",
+      add: "Add",
       remove: "Remove",
       copy: "Copy",
       addPlayersFirst: "Add players first",
@@ -136,6 +142,21 @@ const translations = {
     language: {
       label: "Language",
     },
+    inspiration: {
+      title: "Question inspiration",
+      description: "Browse categories and tap a question to add it to your game.",
+      categories: {
+        funny: "Funny / chaotic energy",
+        party: "Party & social life",
+        sweet: "Sweet / compliment style",
+        nerdy: "Smart / nerdy",
+        embarrassing: "Slightly embarrassing (but harmless)",
+        habits: "Daily life / habits",
+        dating: "Dating / relationships",
+        travel: "Travel / adventure",
+        chaos: "Chaos bonus round",
+      },
+    },
   },
   nl: {
     app: {
@@ -148,6 +169,7 @@ const translations = {
     nav: {
       setup: "1. Instellen",
       host: "2. Codes verzamelen",
+      inspiration: "3. Inspiratie",
     },
     setup: {
       title: "Instellen",
@@ -157,6 +179,10 @@ const translations = {
       gameTitlePlaceholder: "Vrijdagavond ranglijst",
       players: "Spelers",
       questions: "Vragen",
+      suggestedTitle: "Vragen ter inspiratie",
+      suggestedHint: "Kies uit een snelle startlijst of ga naar de inspiratiepagina voor meer ideeën.",
+      suggestedAddTop: "Top 10 toevoegen",
+      suggestedMore: "Meer inspiratie",
       lockTitle: "Spel vergrendelen",
       lockDescription: "Vergrendelen bevriest spelers en vragen en maakt de deel-link aan.",
       lockButton: "Spel vergrendelen & link maken",
@@ -227,6 +253,7 @@ const translations = {
     labels: {
       addPlayer: "Speler toevoegen",
       addQuestion: "Vraag toevoegen",
+      add: "Toevoegen",
       remove: "Verwijderen",
       copy: "Kopiëren",
       addPlayersFirst: "Voeg eerst spelers toe",
@@ -269,8 +296,350 @@ const translations = {
     language: {
       label: "Taal",
     },
+    inspiration: {
+      title: "Vraaginspiratie",
+      description: "Blader door categorieën en tik een vraag aan om toe te voegen aan je spel.",
+      categories: {
+        funny: "Grappig / chaotische energie",
+        party: "Feest & sociaal leven",
+        sweet: "Lief / compliment",
+        nerdy: "Slim / nerdy",
+        embarrassing: "Licht gênant (maar onschuldig)",
+        habits: "Dagelijks leven / gewoontes",
+        dating: "Dating / relaties",
+        travel: "Reizen / avontuur",
+        chaos: "Chaos bonusronde",
+      },
+    },
   },
 };
+
+const questionBank = [
+  {
+    id: "lost",
+    category: "funny",
+    text: { nl: "Wie raakt het vaakst iets kwijt?", en: "Who loses things most often?" },
+  },
+  {
+    id: "late",
+    category: "funny",
+    text: { nl: "Wie komt altijd nét te laat?", en: "Who always arrives just a little late?" },
+  },
+  {
+    id: "direction",
+    category: "funny",
+    text: { nl: "Wie heeft de slechtste richtingsgevoel?", en: "Who has the worst sense of direction?" },
+  },
+  {
+    id: "fire-alarm",
+    category: "funny",
+    text: {
+      nl: "Wie zou per ongeluk een brandalarm activeren?",
+      en: "Who would accidentally set off a fire alarm?",
+    },
+  },
+  {
+    id: "typos",
+    category: "funny",
+    text: {
+      nl: "Wie maakt de meeste typefouten in groepsapps?",
+      en: "Who makes the most typos in group chats?",
+    },
+  },
+  {
+    id: "party",
+    category: "party",
+    text: { nl: "Wie is altijd in voor een feestje?", en: "Who is always down to party?" },
+  },
+  {
+    id: "last-to-bed",
+    category: "party",
+    text: {
+      nl: "Wie gaat het laatst naar bed op een avond uit?",
+      en: "Who goes to bed latest on a night out?",
+    },
+  },
+  {
+    id: "wild-dancer",
+    category: "party",
+    text: { nl: "Wie danst het gekst?", en: "Who dances the wildest?" },
+  },
+  {
+    id: "bartender",
+    category: "party",
+    text: { nl: "Wie is de beste bartender?", en: "Who would make the best bartender?" },
+  },
+  {
+    id: "fast-drunk",
+    category: "party",
+    text: { nl: "Wie wordt het snelst dronken?", en: "Who gets drunk the quickest?" },
+  },
+  {
+    id: "deep-chat",
+    category: "party",
+    text: {
+      nl: "Wie start het vaakst een diep gesprek om 3 uur ’s nachts?",
+      en: "Who starts the deepest 3 a.m. conversations?",
+    },
+  },
+  {
+    id: "caring",
+    category: "sweet",
+    text: { nl: "Wie is het meest zorgzaam?", en: "Who is the most caring?" },
+  },
+  {
+    id: "funniest",
+    category: "sweet",
+    text: { nl: "Wie is het grappigst?", en: "Who is the funniest?" },
+  },
+  {
+    id: "best-advice",
+    category: "sweet",
+    text: { nl: "Wie geeft de beste adviezen?", en: "Who gives the best advice?" },
+  },
+  {
+    id: "loyal",
+    category: "sweet",
+    text: { nl: "Wie is het meest loyaal?", en: "Who is the most loyal?" },
+  },
+  {
+    id: "laughs",
+    category: "sweet",
+    text: {
+      nl: "Wie maakt iedereen aan het lachen?",
+      en: "Who makes everyone laugh the most?",
+    },
+  },
+  {
+    id: "empathy",
+    category: "sweet",
+    text: { nl: "Wie is het meest empathisch?", en: "Who is the most empathetic?" },
+  },
+  {
+    id: "random-facts",
+    category: "nerdy",
+    text: { nl: "Wie weet altijd random feitjes?", en: "Who always knows random facts?" },
+  },
+  {
+    id: "competitive",
+    category: "nerdy",
+    text: { nl: "Wie is het meest competitief?", en: "Who is the most competitive?" },
+  },
+  {
+    id: "quiz",
+    category: "nerdy",
+    text: { nl: "Wie zou een quiz winnen?", en: "Who would win a quiz?" },
+  },
+  {
+    id: "planner",
+    category: "nerdy",
+    text: {
+      nl: "Wie plant alles het beste vooruit?",
+      en: "Who plans everything the best ahead of time?",
+    },
+  },
+  {
+    id: "creative",
+    category: "nerdy",
+    text: { nl: "Wie is het meest creatief?", en: "Who is the most creative?" },
+  },
+  {
+    id: "run-business",
+    category: "nerdy",
+    text: { nl: "Wie zou het beste een bedrijf runnen?", en: "Who would run a company best?" },
+  },
+  {
+    id: "bad-music",
+    category: "embarrassing",
+    text: { nl: "Wie heeft de slechtste muzieksmaak?", en: "Who has the worst music taste?" },
+  },
+  {
+    id: "cry-movie",
+    category: "embarrassing",
+    text: { nl: "Wie zou het snelst huilen bij een film?", en: "Who would cry fastest in a movie?" },
+  },
+  {
+    id: "talk-self",
+    category: "embarrassing",
+    text: { nl: "Wie praat het meest in zichzelf?", en: "Who talks to themselves the most?" },
+  },
+  {
+    id: "guilty-pleasure",
+    category: "embarrassing",
+    text: {
+      nl: "Wie heeft de vreemdste guilty pleasure?",
+      en: "Who has the weirdest guilty pleasure?",
+    },
+  },
+  {
+    id: "fast-reply",
+    category: "embarrassing",
+    text: { nl: "Wie appt het snelst terug?", en: "Who replies the fastest to messages?" },
+  },
+  {
+    id: "chaotic-home",
+    category: "embarrassing",
+    text: { nl: "Wie is het meest chaotisch thuis?", en: "Who is the messiest at home?" },
+  },
+  {
+    id: "on-time",
+    category: "habits",
+    text: { nl: "Wie is het meest op tijd?", en: "Who is the most on time?" },
+  },
+  {
+    id: "messiest",
+    category: "habits",
+    text: { nl: "Wie is het slordigst?", en: "Who is the messiest?" },
+  },
+  {
+    id: "unhealthy",
+    category: "habits",
+    text: { nl: "Wie eet het meest ongezond?", en: "Who eats the most unhealthy?" },
+  },
+  {
+    id: "exercise",
+    category: "habits",
+    text: { nl: "Wie sport het vaakst?", en: "Who works out the most?" },
+  },
+  {
+    id: "coffee",
+    category: "habits",
+    text: { nl: "Wie is het meest verslaafd aan koffie?", en: "Who is most addicted to coffee?" },
+  },
+  {
+    id: "tiktok",
+    category: "habits",
+    text: {
+      nl: "Wie zit het langst op TikTok/Instagram?",
+      en: "Who spends the longest on TikTok/Instagram?",
+    },
+  },
+  {
+    id: "flirt",
+    category: "dating",
+    text: { nl: "Wie flirt het makkelijkst?", en: "Who flirts the easiest?" },
+  },
+  {
+    id: "marry",
+    category: "dating",
+    text: { nl: "Wie zou het eerst trouwen?", en: "Who would get married first?" },
+  },
+  {
+    id: "dating-stories",
+    category: "dating",
+    text: {
+      nl: "Wie heeft de meeste datingverhalen?",
+      en: "Who has the most dating stories?",
+    },
+  },
+  {
+    id: "best-partner",
+    category: "dating",
+    text: { nl: "Wie zou de beste partner zijn?", en: "Who would be the best partner?" },
+  },
+  {
+    id: "romantic",
+    category: "dating",
+    text: { nl: "Wie is het meest romantisch?", en: "Who is the most romantic?" },
+  },
+  {
+    id: "jealous",
+    category: "dating",
+    text: { nl: "Wie is het meest jaloers?", en: "Who is the most jealous?" },
+  },
+  {
+    id: "emigrate",
+    category: "travel",
+    text: { nl: "Wie zou het eerst emigreren?", en: "Who would emigrate first?" },
+  },
+  {
+    id: "adventurous",
+    category: "travel",
+    text: { nl: "Wie is het meest avontuurlijk?", en: "Who is the most adventurous?" },
+  },
+  {
+    id: "lost-vacation",
+    category: "travel",
+    text: { nl: "Wie zou verdwalen op vakantie?", en: "Who would get lost on vacation?" },
+  },
+  {
+    id: "overpack",
+    category: "travel",
+    text: {
+      nl: "Wie pakt altijd te veel spullen in?",
+      en: "Who always overpacks?",
+    },
+  },
+  {
+    id: "last-minute",
+    category: "travel",
+    text: {
+      nl: "Wie boekt alles last minute?",
+      en: "Who books everything last minute?",
+    },
+  },
+  {
+    id: "desert-island",
+    category: "travel",
+    text: {
+      nl: "Wie zou het beste overleven op een onbewoond eiland?",
+      en: "Who would survive best on a deserted island?",
+    },
+  },
+  {
+    id: "arrested",
+    category: "chaos",
+    text: {
+      nl: "Wie zou het eerst gearresteerd worden (per ongeluk)?",
+      en: "Who would get arrested first (by accident)?",
+    },
+  },
+  {
+    id: "conspiracy",
+    category: "chaos",
+    text: {
+      nl: "Wie zou het snelst een complottheorie geloven?",
+      en: "Who would believe a conspiracy theory the fastest?",
+    },
+  },
+  {
+    id: "no-phone",
+    category: "chaos",
+    text: {
+      nl: "Wie zou een week zonder telefoon niet overleven?",
+      en: "Who couldn't survive a week without their phone?",
+    },
+  },
+  {
+    id: "accidental-famous",
+    category: "chaos",
+    text: {
+      nl: "Wie zou per ongeluk beroemd worden?",
+      en: "Who would accidentally become famous?",
+    },
+  },
+  {
+    id: "tattoo-vacation",
+    category: "chaos",
+    text: {
+      nl: "Wie zou het eerst een tattoo nemen op vakantie?",
+      en: "Who would get a vacation tattoo first?",
+    },
+  },
+];
+
+const topQuestionIds = [
+  "lost",
+  "party",
+  "caring",
+  "random-facts",
+  "bad-music",
+  "on-time",
+  "flirt",
+  "adventurous",
+  "late",
+  "accidental-famous",
+];
 
 const state = {
   view: "setup",
@@ -295,16 +664,22 @@ const el = {
   navBar: document.getElementById("nav-bar"),
   navSetup: document.getElementById("nav-setup"),
   navHost: document.getElementById("nav-host"),
+  navInspiration: document.getElementById("nav-inspiration"),
   languageSelect: document.getElementById("language-select"),
   viewSetup: document.getElementById("view-setup"),
   viewPlayer: document.getElementById("view-player"),
   viewHost: document.getElementById("view-host"),
   viewReveal: document.getElementById("view-reveal"),
+  viewInspiration: document.getElementById("view-inspiration"),
   gameTitle: document.getElementById("game-title"),
   playersList: document.getElementById("players-list"),
   addPlayer: document.getElementById("add-player"),
   questionsList: document.getElementById("questions-list"),
   addQuestion: document.getElementById("add-question"),
+  suggestedQuestions: document.getElementById("suggested-questions"),
+  addTopQuestions: document.getElementById("add-top-questions"),
+  openInspiration: document.getElementById("open-inspiration"),
+  inspirationGroups: document.getElementById("inspiration-groups"),
   shareUrl: document.getElementById("share-url"),
   copyShare: document.getElementById("copy-share"),
   finalizedPanel: document.getElementById("finalized-panel"),
@@ -396,6 +771,15 @@ function applyTranslations() {
     const key = node.dataset.i18nPlaceholder;
     node.setAttribute("placeholder", t(key));
   });
+}
+
+function getQuestionText(question) {
+  if (!question || !question.text) return "";
+  return question.text[state.language] || question.text.en || "";
+}
+
+function getQuestionCategoryLabel(category) {
+  return t(`inspiration.categories.${category}`);
 }
 
 function renderLanguageOptions() {
@@ -560,11 +944,15 @@ function setView(view) {
   el.viewPlayer.classList.toggle("hidden", view !== "player");
   el.viewHost.classList.toggle("hidden", view !== "host");
   el.viewReveal.classList.toggle("hidden", view !== "reveal");
+  el.viewInspiration.classList.toggle("hidden", view !== "inspiration");
   el.navBar.classList.toggle("hidden", view === "player");
   el.appHeader.classList.toggle("hidden", view === "reveal");
   if (view === "player") renderPlayerStep();
   el.navSetup.classList.toggle("active", view === "setup");
   el.navHost.classList.toggle("active", view === "host");
+  if (el.navInspiration) {
+    el.navInspiration.classList.toggle("active", view === "inspiration");
+  }
 }
 
 function ensureGame() {
@@ -702,6 +1090,77 @@ function renderQuestionsList() {
     row.appendChild(presenter);
     row.appendChild(remove);
     el.questionsList.appendChild(row);
+  });
+}
+
+function addQuestionText(text) {
+  if (state.game.finalizedAt) return;
+  const normalized = text.trim();
+  if (!normalized) return;
+  const exists = state.game.questions.some(
+    (question) => question.text.trim().toLowerCase() === normalized.toLowerCase()
+  );
+  if (exists) return;
+  const index = state.game.questions.length;
+  state.game.questions.push({
+    id: createId("q"),
+    text: normalized,
+    presenterId: getDefaultPresenterId(index),
+  });
+  handleSetupChange();
+  renderQuestionsList();
+  renderPlayerQuestion();
+}
+
+function addQuestionsFromIds(ids) {
+  ids.forEach((id) => {
+    const question = questionBank.find((item) => item.id === id);
+    if (!question) return;
+    addQuestionText(getQuestionText(question));
+  });
+}
+
+function renderSuggestedQuestions() {
+  if (!el.suggestedQuestions) return;
+  el.suggestedQuestions.innerHTML = "";
+  topQuestionIds.forEach((id) => {
+    const question = questionBank.find((item) => item.id === id);
+    if (!question) return;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "pill";
+    button.textContent = getQuestionText(question);
+    button.addEventListener("click", () => addQuestionText(getQuestionText(question)));
+    button.disabled = Boolean(state.game.finalizedAt);
+    el.suggestedQuestions.appendChild(button);
+  });
+}
+
+function renderInspirationGroups() {
+  if (!el.inspirationGroups) return;
+  el.inspirationGroups.innerHTML = "";
+  const categories = Array.from(new Set(questionBank.map((question) => question.category)));
+  categories.forEach((category) => {
+    const group = document.createElement("div");
+    group.className = "card";
+    const title = document.createElement("h3");
+    title.textContent = getQuestionCategoryLabel(category);
+    group.appendChild(title);
+    const list = document.createElement("div");
+    list.className = "pill-grid";
+    questionBank
+      .filter((question) => question.category === category)
+      .forEach((question) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "pill";
+        button.textContent = getQuestionText(question);
+        button.addEventListener("click", () => addQuestionText(getQuestionText(question)));
+        button.disabled = Boolean(state.game.finalizedAt);
+        list.appendChild(button);
+      });
+    group.appendChild(list);
+    el.inspirationGroups.appendChild(group);
   });
 }
 
@@ -1218,12 +1677,17 @@ function renderAll() {
   el.gameTitle.disabled = Boolean(state.game.finalizedAt);
   renderPlayersList();
   renderQuestionsList();
+  renderSuggestedQuestions();
+  renderInspirationGroups();
   renderPlayerSelect();
   renderPlayerQuestion();
   renderSubmissionStatus();
   renderReveal();
   el.addPlayer.disabled = Boolean(state.game.finalizedAt);
   el.addQuestion.disabled = Boolean(state.game.finalizedAt);
+  if (el.addTopQuestions) {
+    el.addTopQuestions.disabled = Boolean(state.game.finalizedAt);
+  }
   el.finalizeGame.disabled = Boolean(state.game.finalizedAt);
   el.finalizedPanel.classList.toggle("hidden", !state.game.finalizedAt);
   el.revealLinkPanel.classList.add("hidden");
@@ -1236,10 +1700,21 @@ function renderAll() {
 
 el.navSetup.addEventListener("click", () => setView("setup"));
 el.navHost.addEventListener("click", () => setView("host"));
+if (el.navInspiration) {
+  el.navInspiration.addEventListener("click", () => setView("inspiration"));
+}
 if (el.languageSelect) {
   el.languageSelect.addEventListener("change", (event) => {
     setLanguage(event.target.value);
   });
+}
+
+if (el.addTopQuestions) {
+  el.addTopQuestions.addEventListener("click", () => addQuestionsFromIds(topQuestionIds));
+}
+
+if (el.openInspiration) {
+  el.openInspiration.addEventListener("click", () => setView("inspiration"));
 }
 
 el.gameTitle.addEventListener("input", () => {

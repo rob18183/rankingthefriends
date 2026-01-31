@@ -25,6 +25,9 @@
         <nav id="nav-bar" class="nav">
           <button id="nav-setup" class="nav-btn" data-i18n="nav.setup">1. Setup</button>
           <button id="nav-host" class="nav-btn" data-i18n="nav.host">2. Collect Codes</button>
+          <button id="nav-inspiration" class="nav-btn" data-i18n="nav.inspiration">
+            3. Inspiration
+          </button>
         </nav>
       </header>
 
@@ -57,6 +60,26 @@
             <div id="questions-list" class="list"></div>
             <button id="add-question" class="btn" data-i18n="labels.addQuestion">Add question</button>
           </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 data-i18n="setup.suggestedTitle">Suggested questions</h3>
+              <p class="muted" data-i18n="setup.suggestedHint">
+                Pick from a quick starter list or jump to the inspiration page for more ideas.
+              </p>
+            </div>
+            <div class="actions">
+              <button id="add-top-questions" class="btn" data-i18n="setup.suggestedAddTop">
+                Add top 10
+              </button>
+              <button id="open-inspiration" class="btn" data-i18n="setup.suggestedMore">
+                More inspiration
+              </button>
+            </div>
+          </div>
+          <div id="suggested-questions" class="pill-grid"></div>
         </div>
 
         <div class="card">
@@ -292,6 +315,14 @@
             <button id="reveal-next" class="btn primary" data-i18n="reveal.next">Next</button>
           </div>
         </div>
+      </section>
+
+      <section id="view-inspiration" class="view hidden">
+        <h2 data-i18n="inspiration.title">Question inspiration</h2>
+        <p class="muted" data-i18n="inspiration.description">
+          Browse categories and tap a question to add it to your game.
+        </p>
+        <div id="inspiration-groups" class="stack"></div>
       </section>
     </main>
 
