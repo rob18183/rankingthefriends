@@ -166,21 +166,25 @@
         <div id="reveal-stage" class="card reveal-stage">
           <div id="reveal-prompt" class="reveal-prompt hidden">
             <h3>Presenter, come forward</h3>
-            <p class="muted">Read the question out loud before the reveal begins.</p>
+            <p class="muted">
+              <span id="reveal-presenter-name"></span> kicks things off. Read the question out loud
+              before the reveal begins.
+            </p>
           </div>
           <div id="reveal-question-panel" class="hidden">
             <h3 class="reveal-question">Question</h3>
             <p id="reveal-question-text" class="reveal-question-text"></p>
+            <p class="muted reveal-presenter-note">Presenter: <span id="reveal-presenter-label"></span></p>
           </div>
           <div id="reveal-ranking-panel" class="hidden">
-            <h3 class="reveal-question">Ranking</h3>
-            <ol id="round-reveal" class="leaderboard"></ol>
+            <h3 class="reveal-question">Presenter vs group average</h3>
+            <ol id="round-reveal" class="leaderboard presenter-reveal"></ol>
           </div>
           <div id="reveal-roundscore-panel" class="hidden">
             <h3 class="reveal-question">Round score</h3>
             <p class="muted score-explain">
-              Scoring: each player earns points based on how closely their ranking matches the group
-              consensus order for this question.
+              Points gained this round based on how closely each ranking matches the group
+              consensus.
             </p>
             <ol id="round-leaderboard" class="leaderboard"></ol>
           </div>

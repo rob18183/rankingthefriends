@@ -211,11 +211,62 @@ body {
   margin-top: 8px;
 }
 
+.reveal-presenter-note {
+  margin-top: 6px;
+}
+
 .reveal-prompt {
   border: 1px dashed var(--border);
   padding: 12px;
   margin-bottom: 12px;
   background: #fbf7ef;
+}
+
+.presenter-reveal li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.reveal-rank {
+  font-weight: 600;
+  min-width: 36px;
+}
+
+.reveal-picks {
+  display: grid;
+  gap: 6px;
+}
+
+.reveal-pick {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reveal-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.reveal-badge {
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  min-width: 96px;
+  text-align: center;
+}
+
+.reveal-row.match {
+  background: #e6f4ed;
+}
+
+.reveal-row.miss {
+  background: #f7ecec;
 }
 
 .score-explain {
