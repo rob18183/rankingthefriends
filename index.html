@@ -9,83 +9,96 @@
   <body>
     <main class="app">
       <header class="app-header" id="app-header">
-        <h1>Ranking Your Friends</h1>
-        <p class="subtitle">
+        <h1 data-i18n="app.title">Ranking Your Friends</h1>
+        <p class="subtitle" data-i18n="app.subtitle">
           A playful party game: pick juicy questions, rank each other, and reveal the funniest results
           round by round.
         </p>
-        <p class="muted">
+        <p class="muted" data-i18n="app.intro">
           No accounts, no logins. The host locks the game, players send a short secret code,
           and the host runs a big-screen style reveal.
         </p>
+        <div class="language">
+          <label for="language-select" data-i18n="language.label">Language</label>
+          <select id="language-select"></select>
+        </div>
         <nav id="nav-bar" class="nav">
-          <button id="nav-setup" class="nav-btn">1. Setup</button>
-          <button id="nav-host" class="nav-btn">2. Collect Codes</button>
+          <button id="nav-setup" class="nav-btn" data-i18n="nav.setup">1. Setup</button>
+          <button id="nav-host" class="nav-btn" data-i18n="nav.host">2. Collect Codes</button>
         </nav>
       </header>
 
       <section id="view-setup" class="view">
-        <h2>Setup</h2>
-        <p class="muted">
+        <h2 data-i18n="setup.title">Setup</h2>
+        <p class="muted" data-i18n="setup.description">
           Add players and questions. When you lock the game, the setup freezes and a share link
           is generated for your players.
         </p>
         <div class="card">
           <label class="field">
-            <span>Game title</span>
-            <input id="game-title" type="text" placeholder="Friday night rankings" />
+            <span data-i18n="setup.gameTitle">Game title</span>
+            <input
+              id="game-title"
+              type="text"
+              placeholder="Friday night rankings"
+              data-i18n-placeholder="setup.gameTitlePlaceholder"
+            />
           </label>
         </div>
 
         <div class="grid">
           <div class="card">
-            <h3>Players</h3>
+            <h3 data-i18n="setup.players">Players</h3>
             <div id="players-list" class="list"></div>
-            <button id="add-player" class="btn">Add player</button>
+            <button id="add-player" class="btn" data-i18n="labels.addPlayer">Add player</button>
           </div>
           <div class="card">
-            <h3>Questions</h3>
+            <h3 data-i18n="setup.questions">Questions</h3>
             <div id="questions-list" class="list"></div>
-            <button id="add-question" class="btn">Add question</button>
+            <button id="add-question" class="btn" data-i18n="labels.addQuestion">Add question</button>
           </div>
         </div>
 
         <div class="card">
-          <h3>Lock the game</h3>
-          <p class="muted">
+          <h3 data-i18n="setup.lockTitle">Lock the game</h3>
+          <p class="muted" data-i18n="setup.lockDescription">
             Locking freezes players and questions, and generates the share link.
           </p>
           <div class="actions">
-            <button id="finalize-game" class="btn primary">Lock game & create link</button>
-            <button id="go-host" class="btn">Go to collect codes</button>
+            <button id="finalize-game" class="btn primary" data-i18n="setup.lockButton">
+              Lock game & create link
+            </button>
+            <button id="go-host" class="btn" data-i18n="setup.goHost">Go to collect codes</button>
           </div>
           <p id="setup-error" class="error hidden"></p>
         </div>
 
         <div id="finalized-panel" class="card hidden">
-          <h3>Share link</h3>
+          <h3 data-i18n="setup.shareTitle">Share link</h3>
           <div class="share-row">
             <input id="share-url" type="text" readonly />
-            <button id="copy-share" class="btn">Copy</button>
+            <button id="copy-share" class="btn" data-i18n="labels.copy">Copy</button>
           </div>
-          <p class="muted">Send this link to each player.</p>
-          <h4>Game code (backup)</h4>
+          <p class="muted" data-i18n="setup.shareHint">Send this link to each player.</p>
+          <h4 data-i18n="setup.gameCode">Game code (backup)</h4>
           <textarea id="game-code" class="code-box" readonly></textarea>
         </div>
       </section>
 
       <section id="view-player" class="view hidden">
-        <h2>Player</h2>
-        <p class="muted">
+        <h2 data-i18n="player.title">Player</h2>
+        <p class="muted" data-i18n="player.description">
           Pick your name, rank everyone for each question, then copy your secret code.
         </p>
         <div id="player-step-identity" class="card">
           <label class="field">
-            <span>Select your name</span>
+            <span data-i18n="player.selectName">Select your name</span>
             <select id="player-select"></select>
           </label>
           <div class="actions">
-            <button id="player-confirm" class="btn primary" disabled>Start</button>
+            <button id="player-confirm" class="btn primary" data-i18n="player.start" disabled>
+              Start
+            </button>
           </div>
         </div>
 
@@ -95,21 +108,29 @@
           </div>
           <div id="player-questions"></div>
           <div class="actions">
-            <button id="next-question" class="btn">Next question</button>
-            <button id="player-finish" class="btn primary">Finish & get code</button>
+            <button id="next-question" class="btn" data-i18n="player.nextQuestion">
+              Next question
+            </button>
+            <button id="player-finish" class="btn primary" data-i18n="player.finish">
+              Finish & get code
+            </button>
           </div>
         </div>
 
         <div id="player-step-submit" class="card hidden">
-          <h3>Thanks! Send this to your host</h3>
-          <p class="muted">Copy your secret code below and send it via WhatsApp or email.</p>
+          <h3 data-i18n="player.thanks">Thanks! Send this to your host</h3>
+          <p class="muted" data-i18n="player.submitHint">
+            Copy your secret code below and send it via WhatsApp or email.
+          </p>
           <div class="submission-line" id="submission-line-panel">
             <label class="field">
-              <span>Your secret code</span>
+              <span data-i18n="player.secretCode">Your secret code</span>
               <input id="submission-line" type="text" readonly />
             </label>
             <div class="actions">
-              <button id="copy-submission-line" class="btn primary">Copy code</button>
+              <button id="copy-submission-line" class="btn primary" data-i18n="player.copyCode">
+                Copy code
+              </button>
             </div>
           </div>
           <p id="player-error" class="error hidden"></p>
@@ -117,115 +138,158 @@
       </section>
 
       <section id="view-host" class="view hidden">
-        <h2>Collect Codes</h2>
-        <p class="muted">
+        <h2 data-i18n="host.title">Collect Codes</h2>
+        <p class="muted" data-i18n="host.description">
           Paste each player's code below (one per line). When all are in, start the reveal.
         </p>
         <div class="card">
-          <h3>Paste codes</h3>
-          <p class="muted">Each line: <code>name:code</code></p>
-          <textarea id="import-text" class="code-box" placeholder="alice:abc123&#10;bob:def456"></textarea>
+          <h3 data-i18n="host.pasteTitle">Paste codes</h3>
+          <p class="muted">
+            <span data-i18n="host.pasteHint">Each line: name:code</span>
+          </p>
+          <textarea
+            id="import-text"
+            class="code-box"
+            placeholder="alice:abc123&#10;bob:def456"
+            data-i18n-placeholder="host.pastePlaceholder"
+          ></textarea>
           <div class="actions">
-            <button id="import-submit" class="btn primary">Import lines</button>
+            <button id="import-submit" class="btn primary" data-i18n="host.import">
+              Import lines
+            </button>
           </div>
           <p id="import-error" class="error hidden"></p>
         </div>
         <div class="card">
-          <h3>Submission status</h3>
+          <h3 data-i18n="host.status">Submission status</h3>
           <div id="submission-status" class="list"></div>
         </div>
         <div class="actions">
-          <button id="start-reveal" class="btn primary" disabled>Generate game night link</button>
+          <button id="start-reveal" class="btn primary" data-i18n="host.startReveal" disabled>
+            Generate game night link
+          </button>
         </div>
 
         <div id="reveal-link-panel" class="card hidden">
-          <h3>Game night link</h3>
-          <p class="muted">Open this on the big screen, or share as a QR code.</p>
+          <h3 data-i18n="host.revealTitle">Game night link</h3>
+          <p class="muted" data-i18n="host.revealHint">
+            Open this on the big screen, or share as a QR code.
+          </p>
           <div class="share-row">
             <input id="reveal-url" type="text" readonly />
-            <button id="copy-reveal" class="btn">Copy</button>
+            <button id="copy-reveal" class="btn" data-i18n="labels.copy">Copy</button>
           </div>
           <div class="qr-wrap">
             <canvas id="reveal-qr" width="220" height="220"></canvas>
           </div>
           <div class="actions">
-            <button id="open-reveal" class="btn primary">Open reveal</button>
+            <button id="open-reveal" class="btn primary" data-i18n="host.openReveal">
+              Open reveal
+            </button>
           </div>
         </div>
       </section>
 
       <section id="view-reveal" class="view hidden">
-        <h2>Reveal</h2>
+        <h2 data-i18n="reveal.title">Reveal</h2>
         <div id="reveal-fullscreen" class="card reveal-fullscreen">
-          <h3>Ready to present?</h3>
-          <p class="muted">Go fullscreen for the best vibe.</p>
-          <button id="reveal-enter-fullscreen" class="btn primary">Go fullscreen</button>
-          <button id="reveal-skip-fullscreen" class="btn">Continue without fullscreen</button>
+          <h3 data-i18n="reveal.readyTitle">Ready to present?</h3>
+          <p class="muted" data-i18n="reveal.readyHint">Go fullscreen for the best vibe.</p>
+          <button id="reveal-enter-fullscreen" class="btn primary" data-i18n="reveal.fullscreen">
+            Go fullscreen
+          </button>
+          <button id="reveal-skip-fullscreen" class="btn" data-i18n="reveal.skipFullscreen">
+            Continue without fullscreen
+          </button>
         </div>
 
         <div id="reveal-stage" class="card reveal-stage">
           <div class="reveal-scoring">
-            <h3>Choose scoring</h3>
+            <h3 data-i18n="reveal.chooseScoring">Choose scoring</h3>
             <div class="scoring-options">
               <label class="scoring-option" for="scoring-simple">
                 <input id="scoring-simple" type="radio" name="scoring" value="simple" />
                 <div>
-                  <span class="scoring-title">Simple (exact ranks)</span>
-                  <p class="muted">
+                  <span class="scoring-title" data-i18n="reveal.simpleTitle">
+                    Simple (exact ranks)
+                  </span>
+                  <p class="muted" data-i18n="reveal.simpleDesc">
                     Score 1 point for every player placed in the exact position (e.g. John is
                     fourth).
                   </p>
                   <ul class="scoring-proscons">
-                    <li><strong>Pros:</strong> easy to explain and highlights perfect hits.</li>
-                    <li><strong>Cons:</strong> near-misses get no credit.</li>
+                    <li>
+                      <strong data-i18n="reveal.simpleProsLabel">Pros:</strong>
+                      <span data-i18n="reveal.simplePros">
+                        easy to explain and highlights perfect hits.
+                      </span>
+                    </li>
+                    <li>
+                      <strong data-i18n="reveal.simpleConsLabel">Cons:</strong>
+                      <span data-i18n="reveal.simpleCons">near-misses get no credit.</span>
+                    </li>
                   </ul>
                 </div>
               </label>
               <label class="scoring-option" for="scoring-weighted">
                 <input id="scoring-weighted" type="radio" name="scoring" value="weighted" />
                 <div>
-                  <span class="scoring-title">Weighted (distance-based)</span>
-                  <p class="muted">
+                  <span class="scoring-title" data-i18n="reveal.weightedTitle">
+                    Weighted (distance-based)
+                  </span>
+                  <p class="muted" data-i18n="reveal.weightedDesc">
                     Score more points when your ranking is closer to the group consensus and fewer
                     points when you are far off.
                   </p>
                   <ul class="scoring-proscons">
-                    <li><strong>Pros:</strong> rewards close guesses and keeps scores tight.</li>
-                    <li><strong>Cons:</strong> needs a quick explanation before playing.</li>
+                    <li>
+                      <strong data-i18n="reveal.weightedProsLabel">Pros:</strong>
+                      <span data-i18n="reveal.weightedPros">
+                        rewards close guesses and keeps scores tight.
+                      </span>
+                    </li>
+                    <li>
+                      <strong data-i18n="reveal.weightedConsLabel">Cons:</strong>
+                      <span data-i18n="reveal.weightedCons">
+                        needs a quick explanation before playing.
+                      </span>
+                    </li>
                   </ul>
                 </div>
               </label>
             </div>
           </div>
           <div id="reveal-prompt" class="reveal-prompt hidden">
-            <h3>Presenter, come forward</h3>
-            <p class="muted">
-              <span id="reveal-presenter-name"></span> kicks things off. Read the question out loud
-              before the reveal begins.
-            </p>
+            <h3 data-i18n="reveal.promptTitle">Presenter, come forward</h3>
+            <p class="muted" id="reveal-presenter-line"></p>
           </div>
           <div id="reveal-question-panel" class="hidden">
-            <h3 class="reveal-question">Question</h3>
+            <h3 class="reveal-question" data-i18n="reveal.questionLabel">Question</h3>
             <p id="reveal-question-text" class="reveal-question-text"></p>
-            <p class="muted reveal-presenter-note">Presenter: <span id="reveal-presenter-label"></span></p>
+            <p class="muted reveal-presenter-note">
+              <span data-i18n="reveal.presenterNote">Presenter:</span>
+              <span id="reveal-presenter-label"></span>
+            </p>
           </div>
           <div id="reveal-ranking-panel" class="hidden">
-            <h3 class="reveal-question">Presenter vs group average</h3>
+            <h3 class="reveal-question" data-i18n="reveal.presenterVsGroup">
+              Presenter vs group average
+            </h3>
             <ol id="round-reveal" class="leaderboard presenter-reveal"></ol>
           </div>
           <div id="reveal-roundscore-panel" class="hidden">
-            <h3 class="reveal-question">Round score</h3>
+            <h3 class="reveal-question" data-i18n="reveal.roundScore">Round score</h3>
             <p class="muted score-explain" id="round-score-explain"></p>
             <ol id="round-leaderboard" class="leaderboard"></ol>
           </div>
           <div id="reveal-total-panel" class="hidden">
-            <h3 class="reveal-question">Total score</h3>
+            <h3 class="reveal-question" data-i18n="reveal.totalScore">Total score</h3>
             <p class="muted score-explain" id="total-score-explain"></p>
             <ol id="total-leaderboard" class="leaderboard"></ol>
           </div>
           <div class="actions">
-            <button id="reveal-prev" class="btn">Back</button>
-            <button id="reveal-next" class="btn primary">Next</button>
+            <button id="reveal-prev" class="btn" data-i18n="reveal.back">Back</button>
+            <button id="reveal-next" class="btn primary" data-i18n="reveal.next">Next</button>
           </div>
         </div>
       </section>

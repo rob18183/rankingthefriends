@@ -2,10 +2,280 @@ import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/+esm";
 
 const STORAGE_KEY = "ryf:game";
 const HASH_PREFIX = "g";
+const LANG_STORAGE_KEY = "ryf:lang";
+
+const translations = {
+  en: {
+    app: {
+      title: "Ranking Your Friends",
+      subtitle:
+        "A playful party game: pick juicy questions, rank each other, and reveal the funniest results round by round.",
+      intro:
+        "No accounts, no logins. The host locks the game, players send a short secret code, and the host runs a big-screen style reveal.",
+    },
+    nav: {
+      setup: "1. Setup",
+      host: "2. Collect Codes",
+    },
+    setup: {
+      title: "Setup",
+      description:
+        "Add players and questions. When you lock the game, the setup freezes and a share link is generated for your players.",
+      gameTitle: "Game title",
+      gameTitlePlaceholder: "Friday night rankings",
+      players: "Players",
+      questions: "Questions",
+      lockTitle: "Lock the game",
+      lockDescription: "Locking freezes players and questions, and generates the share link.",
+      lockButton: "Lock game & create link",
+      goHost: "Go to collect codes",
+      shareTitle: "Share link",
+      shareCopy: "Copy",
+      shareHint: "Send this link to each player.",
+      gameCode: "Game code (backup)",
+    },
+    player: {
+      title: "Player",
+      description: "Pick your name, rank everyone for each question, then copy your secret code.",
+      selectName: "Select your name",
+      start: "Start",
+      nextQuestion: "Next question",
+      finish: "Finish & get code",
+      thanks: "Thanks! Send this to your host",
+      submitHint: "Copy your secret code below and send it via WhatsApp or email.",
+      secretCode: "Your secret code",
+      copyCode: "Copy code",
+    },
+    host: {
+      title: "Collect Codes",
+      description: "Paste each player's code below (one per line). When all are in, start the reveal.",
+      pasteTitle: "Paste codes",
+      pasteHint: "Each line: name:code",
+      pastePlaceholder: "alice:abc123\nbob:def456",
+      import: "Import lines",
+      status: "Submission status",
+      startReveal: "Generate game night link",
+      revealTitle: "Game night link",
+      revealHint: "Open this on the big screen, or share as a QR code.",
+      openReveal: "Open reveal",
+    },
+    reveal: {
+      title: "Reveal",
+      readyTitle: "Ready to present?",
+      readyHint: "Go fullscreen for the best vibe.",
+      fullscreen: "Go fullscreen",
+      skipFullscreen: "Continue without fullscreen",
+      chooseScoring: "Choose scoring",
+      simpleTitle: "Simple (exact ranks)",
+      simpleDesc:
+        "Score 1 point for every player placed in the exact position (e.g. John is fourth).",
+      simpleProsLabel: "Pros:",
+      simplePros: "easy to explain and highlights perfect hits.",
+      simpleConsLabel: "Cons:",
+      simpleCons: "near-misses get no credit.",
+      weightedTitle: "Weighted (distance-based)",
+      weightedDesc:
+        "Score more points when your ranking is closer to the group consensus and fewer points when you are far off.",
+      weightedProsLabel: "Pros:",
+      weightedPros: "rewards close guesses and keeps scores tight.",
+      weightedConsLabel: "Cons:",
+      weightedCons: "needs a quick explanation before playing.",
+      promptTitle: "Presenter, come forward",
+      promptLine:
+        "{presenter} kicks things off. Read the question out loud before the reveal begins.",
+      questionLabel: "Question",
+      presenterNote: "Presenter:",
+      presenterVsGroup: "Presenter vs group average",
+      roundScore: "Round score",
+      totalScore: "Total score",
+      back: "Back",
+      next: "Next",
+    },
+    labels: {
+      addPlayer: "Add player",
+      addQuestion: "Add question",
+      remove: "Remove",
+      copy: "Copy",
+      addPlayersFirst: "Add players first",
+      unnamed: "(unnamed)",
+      selectPlaceholder: "Select...",
+      untitledQuestion: "Untitled question",
+      unknown: "Unknown",
+      drag: "Drag",
+      up: "Up",
+      down: "Down",
+      submitted: "Submitted",
+      missing: "Missing",
+      presenterTbd: "Presenter TBD",
+      noQuestions: "No questions",
+      presenter: "Presenter",
+      groupAvg: "Group avg",
+      match: "Match",
+      noMatch: "No match",
+    },
+    errors: {
+      shareTooLong: "Share link is too long. Reduce players or questions.",
+      shareLong: "Share link is getting long. Consider fewer questions.",
+      addPlayers: "Add at least two players.",
+      uniquePlayers: "Player names must be unique.",
+      addQuestions: "Add at least one question.",
+      completeQuestions: "Complete all questions before finishing.",
+      lineFormat: "Each line must be name:code.",
+      unknownPlayer: "Unknown player name: {name}",
+      gameMismatch: "Game mismatch for {name}.",
+      playerMismatch: "Player mismatch for {name}.",
+      duplicateSubmission: "Duplicate submission for {name}.",
+      invalidPayload: "Invalid payload for {name}.",
+    },
+    scoring: {
+      roundSimple: "Points this round: 1 point for each exact placement match.",
+      roundWeighted: "Points this round: more points for rankings closer to the group consensus.",
+      totalSimple: "Running total with simple scoring (shown starting in round 2).",
+      totalWeighted: "Running total with weighted scoring (shown starting in round 2).",
+    },
+    language: {
+      label: "Language",
+    },
+  },
+  nl: {
+    app: {
+      title: "Ranking Your Friends",
+      subtitle:
+        "Een speels partyspel: kies sappige vragen, rangschik elkaar en onthul de grappigste resultaten ronde na ronde.",
+      intro:
+        "Geen accounts, geen logins. De host vergrendelt het spel, spelers sturen een korte geheime code en de host toont de onthulling op groot scherm.",
+    },
+    nav: {
+      setup: "1. Instellen",
+      host: "2. Codes verzamelen",
+    },
+    setup: {
+      title: "Instellen",
+      description:
+        "Voeg spelers en vragen toe. Wanneer je het spel vergrendelt, wordt de setup bevroren en wordt er een deel-link voor spelers gemaakt.",
+      gameTitle: "Speltitel",
+      gameTitlePlaceholder: "Vrijdagavond ranglijst",
+      players: "Spelers",
+      questions: "Vragen",
+      lockTitle: "Spel vergrendelen",
+      lockDescription: "Vergrendelen bevriest spelers en vragen en maakt de deel-link aan.",
+      lockButton: "Spel vergrendelen & link maken",
+      goHost: "Ga naar codes verzamelen",
+      shareTitle: "Deel-link",
+      shareCopy: "Kopiëren",
+      shareHint: "Stuur deze link naar elke speler.",
+      gameCode: "Spelcode (back-up)",
+    },
+    player: {
+      title: "Speler",
+      description: "Kies je naam, rangschik iedereen per vraag en kopieer daarna je geheime code.",
+      selectName: "Kies je naam",
+      start: "Start",
+      nextQuestion: "Volgende vraag",
+      finish: "Afronden & code krijgen",
+      thanks: "Bedankt! Stuur dit naar je host",
+      submitHint: "Kopieer je geheime code hieronder en verstuur via WhatsApp of e-mail.",
+      secretCode: "Jouw geheime code",
+      copyCode: "Code kopiëren",
+    },
+    host: {
+      title: "Codes verzamelen",
+      description:
+        "Plak de code van elke speler hieronder (één per regel). Start de reveal zodra alles binnen is.",
+      pasteTitle: "Codes plakken",
+      pasteHint: "Elke regel: naam:code",
+      pastePlaceholder: "alice:abc123\nbob:def456",
+      import: "Regels importeren",
+      status: "Inzendingenstatus",
+      startReveal: "Spelavond-link maken",
+      revealTitle: "Spelavond-link",
+      revealHint: "Open dit op het grote scherm of deel als QR-code.",
+      openReveal: "Reveal openen",
+    },
+    reveal: {
+      title: "Reveal",
+      readyTitle: "Klaar om te presenteren?",
+      readyHint: "Ga fullscreen voor de beste vibe.",
+      fullscreen: "Ga fullscreen",
+      skipFullscreen: "Ga door zonder fullscreen",
+      chooseScoring: "Kies scoremethode",
+      simpleTitle: "Simpel (exacte posities)",
+      simpleDesc:
+        "Scoor 1 punt voor elke speler die je op de exacte positie zet (bijv. John is vierde).",
+      simpleProsLabel: "Voordelen:",
+      simplePros: "makkelijk uit te leggen en benadrukt perfecte hits.",
+      simpleConsLabel: "Nadelen:",
+      simpleCons: "bijna-goed levert geen punten op.",
+      weightedTitle: "Gewogen (afstand)",
+      weightedDesc:
+        "Scoor meer punten als je ranking dichter bij de groepsconsensus ligt en minder punten als je er ver naast zit.",
+      weightedProsLabel: "Voordelen:",
+      weightedPros: "beloont bijna-goed en houdt scores spannend.",
+      weightedConsLabel: "Nadelen:",
+      weightedCons: "heeft een korte uitleg nodig voordat je start.",
+      promptTitle: "Presentator, kom naar voren",
+      promptLine:
+        "{presenter} trapt af. Lees de vraag hardop voordat de reveal begint.",
+      questionLabel: "Vraag",
+      presenterNote: "Presentator:",
+      presenterVsGroup: "Presentator vs groepsgemiddelde",
+      roundScore: "Rondescore",
+      totalScore: "Totaalscore",
+      back: "Terug",
+      next: "Volgende",
+    },
+    labels: {
+      addPlayer: "Speler toevoegen",
+      addQuestion: "Vraag toevoegen",
+      remove: "Verwijderen",
+      copy: "Kopiëren",
+      addPlayersFirst: "Voeg eerst spelers toe",
+      unnamed: "(naamloos)",
+      selectPlaceholder: "Selecteer...",
+      untitledQuestion: "Naamloze vraag",
+      unknown: "Onbekend",
+      drag: "Sleep",
+      up: "Omhoog",
+      down: "Omlaag",
+      submitted: "Ingediend",
+      missing: "Ontbreekt",
+      presenterTbd: "Presentator nog te bepalen",
+      noQuestions: "Geen vragen",
+      presenter: "Presentator",
+      groupAvg: "Groepsgem.",
+      match: "Match",
+      noMatch: "Geen match",
+    },
+    errors: {
+      shareTooLong: "De deel-link is te lang. Verminder spelers of vragen.",
+      shareLong: "De deel-link wordt lang. Overweeg minder vragen.",
+      addPlayers: "Voeg minstens twee spelers toe.",
+      uniquePlayers: "Spelernamen moeten uniek zijn.",
+      addQuestions: "Voeg minstens één vraag toe.",
+      completeQuestions: "Maak alle vragen af voordat je afrondt.",
+      lineFormat: "Elke regel moet naam:code zijn.",
+      unknownPlayer: "Onbekende spelernaam: {name}",
+      gameMismatch: "Spel komt niet overeen voor {name}.",
+      playerMismatch: "Speler komt niet overeen voor {name}.",
+      duplicateSubmission: "Dubbele inzending voor {name}.",
+      invalidPayload: "Ongeldige payload voor {name}.",
+    },
+    scoring: {
+      roundSimple: "Punten deze ronde: 1 punt voor elke exacte plaatsing.",
+      roundWeighted: "Punten deze ronde: meer punten als je ranking dichter bij de groep ligt.",
+      totalSimple: "Totaalscore met simpele scoring (vanaf ronde 2).",
+      totalWeighted: "Totaalscore met gewogen scoring (vanaf ronde 2).",
+    },
+    language: {
+      label: "Taal",
+    },
+  },
+};
 
 const state = {
   view: "setup",
   game: null,
+  language: "en",
   shareEncoded: "",
   playerForm: {
     playerId: null,
@@ -25,6 +295,7 @@ const el = {
   navBar: document.getElementById("nav-bar"),
   navSetup: document.getElementById("nav-setup"),
   navHost: document.getElementById("nav-host"),
+  languageSelect: document.getElementById("language-select"),
   viewSetup: document.getElementById("view-setup"),
   viewPlayer: document.getElementById("view-player"),
   viewHost: document.getElementById("view-host"),
@@ -69,7 +340,7 @@ const el = {
   revealSkipFullscreen: document.getElementById("reveal-skip-fullscreen"),
   revealStage: document.getElementById("reveal-stage"),
   revealPrompt: document.getElementById("reveal-prompt"),
-  revealPresenterName: document.getElementById("reveal-presenter-name"),
+  revealPresenterLine: document.getElementById("reveal-presenter-line"),
   revealPresenterLabel: document.getElementById("reveal-presenter-label"),
   revealQuestionPanel: document.getElementById("reveal-question-panel"),
   revealQuestionText: document.getElementById("reveal-question-text"),
@@ -92,6 +363,59 @@ function createId(prefix) {
     return `${prefix}_${crypto.randomUUID()}`;
   }
   return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+function getInitialLanguage() {
+  const stored = localStorage.getItem(LANG_STORAGE_KEY);
+  if (stored && translations[stored]) return stored;
+  const browser = navigator.language ? navigator.language.toLowerCase() : "en";
+  if (browser.startsWith("nl")) return "nl";
+  return "en";
+}
+
+function t(key, vars = {}) {
+  const table = translations[state.language] || translations.en;
+  const value = key.split(".").reduce((acc, part) => (acc ? acc[part] : null), table);
+  if (typeof value !== "string") return key;
+  return value.replace(/\{(\w+)\}/g, (match, name) => {
+    if (Object.prototype.hasOwnProperty.call(vars, name)) {
+      return vars[name];
+    }
+    return match;
+  });
+}
+
+function applyTranslations() {
+  document.documentElement.lang = state.language;
+  document.title = t("app.title");
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    const key = node.dataset.i18n;
+    node.textContent = t(key);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+    const key = node.dataset.i18nPlaceholder;
+    node.setAttribute("placeholder", t(key));
+  });
+}
+
+function renderLanguageOptions() {
+  if (!el.languageSelect) return;
+  el.languageSelect.innerHTML = "";
+  Object.keys(translations).forEach((lang) => {
+    const option = document.createElement("option");
+    option.value = lang;
+    option.textContent = lang === "nl" ? "Nederlands" : "English";
+    el.languageSelect.appendChild(option);
+  });
+  el.languageSelect.value = state.language;
+}
+
+function setLanguage(lang) {
+  if (!translations[lang]) return;
+  state.language = lang;
+  localStorage.setItem(LANG_STORAGE_KEY, lang);
+  applyTranslations();
+  renderAll();
 }
 
 function emptyGame() {
@@ -199,11 +523,11 @@ async function syncHashFromGame(game, viewOverride) {
   const encoded = await encodeGame(shareGame);
   state.shareEncoded = encoded;
   if (encoded.length > 16000) {
-    showError(el.setupError, "Share link is too long. Reduce players or questions.");
+    showError(el.setupError, t("errors.shareTooLong"));
     return "";
   }
   if (encoded.length > 8000) {
-    showError(el.setupError, "Share link is getting long. Consider fewer questions.");
+    showError(el.setupError, t("errors.shareLong"));
   } else {
     hideError(el.setupError);
   }
@@ -311,7 +635,7 @@ function renderPlayersList() {
     input.disabled = Boolean(state.game.finalizedAt);
     const remove = document.createElement("button");
     remove.className = "btn";
-    remove.textContent = "Remove";
+    remove.textContent = t("labels.remove");
     remove.addEventListener("click", () => {
       if (state.game.finalizedAt) return;
       state.game.players = state.game.players.filter((p) => p.id !== player.id);
@@ -348,13 +672,13 @@ function renderQuestionsList() {
     if (!state.game.players.length) {
       const emptyOption = document.createElement("option");
       emptyOption.value = "";
-      emptyOption.textContent = "Add players first";
+      emptyOption.textContent = t("labels.addPlayersFirst");
       presenter.appendChild(emptyOption);
     } else {
       state.game.players.forEach((player) => {
         const option = document.createElement("option");
         option.value = player.id;
-        option.textContent = player.name || "(unnamed)";
+        option.textContent = player.name || t("labels.unnamed");
         presenter.appendChild(option);
       });
       presenter.value = question.presenterId || "";
@@ -365,7 +689,7 @@ function renderQuestionsList() {
     });
     const remove = document.createElement("button");
     remove.className = "btn";
-    remove.textContent = "Remove";
+    remove.textContent = t("labels.remove");
     remove.addEventListener("click", () => {
       if (state.game.finalizedAt) return;
       state.game.questions = state.game.questions.filter((q) => q.id !== question.id);
@@ -385,12 +709,12 @@ function renderPlayerSelect() {
   el.playerSelect.innerHTML = "";
   const placeholder = document.createElement("option");
   placeholder.value = "";
-  placeholder.textContent = "Select...";
+  placeholder.textContent = t("labels.selectPlaceholder");
   el.playerSelect.appendChild(placeholder);
   state.game.players.forEach((player) => {
     const option = document.createElement("option");
     option.value = player.id;
-    option.textContent = player.name || "(unnamed)";
+    option.textContent = player.name || t("labels.unnamed");
     el.playerSelect.appendChild(option);
   });
   if (state.playerForm.playerId) {
@@ -432,7 +756,7 @@ function renderPlayerQuestions(count) {
     const card = document.createElement("div");
     card.className = "card";
     const title = document.createElement("h3");
-    title.textContent = `${index + 1}. ${question.text || "Untitled question"}`;
+    title.textContent = `${index + 1}. ${question.text || t("labels.untitledQuestion")}`;
     const list = document.createElement("ul");
     list.className = "ranking-list";
     const ranking = state.playerForm.byQuestion[question.id];
@@ -443,21 +767,21 @@ function renderPlayerQuestions(count) {
       li.draggable = !state.playerForm.markedSubmitted;
       li.dataset.playerId = playerId;
       const nameSpan = document.createElement("span");
-      nameSpan.textContent = `${position + 1}. ${player ? player.name : "Unknown"}`;
+      nameSpan.textContent = `${position + 1}. ${player ? player.name : t("labels.unknown")}`;
       const dragSpan = document.createElement("span");
-      dragSpan.textContent = "Drag";
+      dragSpan.textContent = t("labels.drag");
       const controls = document.createElement("div");
       controls.className = "rank-controls";
       const up = document.createElement("button");
       up.className = "rank-btn";
       up.type = "button";
-      up.textContent = "Up";
+      up.textContent = t("labels.up");
       up.disabled = position === 0 || state.playerForm.markedSubmitted;
       up.addEventListener("click", () => moveRanking(question.id, playerId, -1));
       const down = document.createElement("button");
       down.className = "rank-btn";
       down.type = "button";
-      down.textContent = "Down";
+      down.textContent = t("labels.down");
       down.disabled = position === ranking.length - 1 || state.playerForm.markedSubmitted;
       down.addEventListener("click", () => moveRanking(question.id, playerId, 1));
       controls.appendChild(up);
@@ -561,7 +885,9 @@ function renderSubmissionStatus() {
   el.submissionStatus.innerHTML = "";
   state.game.players.forEach((player) => {
     const row = document.createElement("div");
-    row.textContent = `${player.name || "Unnamed"} - ${state.game.submissions[player.id] ? "Submitted" : "Missing"}`;
+    row.textContent = `${player.name || t("labels.unnamed")} - ${
+      state.game.submissions[player.id] ? t("labels.submitted") : t("labels.missing")
+    }`;
     el.submissionStatus.appendChild(row);
   });
   el.startReveal.disabled = !allSubmissionsIn();
@@ -716,16 +1042,20 @@ function getRevealMaxSteps(questionId) {
 }
 
 function renderReveal() {
-  const question = state.game.questions[state.revealIndex] || { text: "No questions" };
-  el.revealQuestionText.textContent = question.text || "Untitled question";
+  const question = state.game.questions[state.revealIndex] || { text: t("labels.noQuestions") };
+  el.revealQuestionText.textContent = question.text || t("labels.untitledQuestion");
   const scoringMode = getScoringMode();
   const consensusOrder = question.id ? buildConsensusRanking(question.id) : [];
   const presenter = question.id ? getPresenterForQuestion(question, state.revealIndex) : null;
   const presenterRanking = question.id
     ? getPresenterRanking(question.id, presenter ? presenter.id : null)
     : [];
-  const presenterName = presenter ? presenter.name : "Presenter TBD";
-  el.revealPresenterName.textContent = presenterName;
+  const presenterName = presenter ? presenter.name : t("labels.presenterTbd");
+  if (el.revealPresenterLine) {
+    el.revealPresenterLine.textContent = t("reveal.promptLine", {
+      presenter: presenterName,
+    });
+  }
   el.revealPresenterLabel.textContent = presenterName;
   const roundScores = question.id ? scoreRound(question.id, scoringMode) : {};
   const showTotals = state.revealIndex >= 1;
@@ -754,15 +1084,11 @@ function renderReveal() {
   }
   if (el.roundScoreExplain) {
     el.roundScoreExplain.textContent =
-      scoringMode === "simple"
-        ? "Points this round: 1 point for each exact placement match."
-        : "Points this round: more points for rankings closer to the group consensus.";
+      scoringMode === "simple" ? t("scoring.roundSimple") : t("scoring.roundWeighted");
   }
   if (el.totalScoreExplain) {
     el.totalScoreExplain.textContent =
-      scoringMode === "simple"
-        ? "Running total with simple scoring (shown starting in round 2)."
-        : "Running total with weighted scoring (shown starting in round 2).";
+      scoringMode === "simple" ? t("scoring.totalSimple") : t("scoring.totalWeighted");
   }
   el.revealPrev.disabled = state.revealIndex <= 0 && state.revealPhase === "prompt";
   el.revealNext.disabled =
@@ -796,13 +1122,13 @@ function renderRevealList(consensusOrder, presenterOrder, revealStep) {
     presenterRow.className = "reveal-pick";
     const presenterLabel = document.createElement("span");
     presenterLabel.className = "reveal-label";
-    presenterLabel.textContent = "Presenter";
+    presenterLabel.textContent = t("labels.presenter");
     const presenterValue = document.createElement("span");
     presenterValue.className = "reveal-value";
     presenterValue.textContent = presenterVisible
       ? presenter
         ? presenter.name
-        : "Unknown"
+        : t("labels.unknown")
       : "...";
     presenterRow.appendChild(presenterLabel);
     presenterRow.appendChild(presenterValue);
@@ -810,13 +1136,13 @@ function renderRevealList(consensusOrder, presenterOrder, revealStep) {
     groupRow.className = "reveal-pick";
     const groupLabel = document.createElement("span");
     groupLabel.className = "reveal-label";
-    groupLabel.textContent = "Group avg";
+    groupLabel.textContent = t("labels.groupAvg");
     const groupValue = document.createElement("span");
     groupValue.className = "reveal-value";
     groupValue.textContent = matchVisible
       ? consensus
         ? consensus.name
-        : "Unknown"
+        : t("labels.unknown")
       : "...";
     groupRow.appendChild(groupLabel);
     groupRow.appendChild(groupValue);
@@ -827,7 +1153,7 @@ function renderRevealList(consensusOrder, presenterOrder, revealStep) {
     if (matchVisible) {
       const isMatch = presenterId && presenterId === playerId;
       li.classList.add(isMatch ? "match" : "miss");
-      badge.textContent = isMatch ? "Match" : "No match";
+      badge.textContent = isMatch ? t("labels.match") : t("labels.noMatch");
     } else {
       badge.textContent = "";
     }
@@ -849,10 +1175,10 @@ function renderLeaderboard(node, scoreMap) {
 
 function validateSetup() {
   const names = state.game.players.map((p) => p.name.trim()).filter(Boolean);
-  if (names.length < 2) return "Add at least two players.";
-  if (new Set(names).size !== names.length) return "Player names must be unique.";
+  if (names.length < 2) return t("errors.addPlayers");
+  if (new Set(names).size !== names.length) return t("errors.uniquePlayers");
   const questions = state.game.questions.map((q) => q.text.trim()).filter(Boolean);
-  if (!questions.length) return "Add at least one question.";
+  if (!questions.length) return t("errors.addQuestions");
   return null;
 }
 
@@ -910,6 +1236,11 @@ function renderAll() {
 
 el.navSetup.addEventListener("click", () => setView("setup"));
 el.navHost.addEventListener("click", () => setView("host"));
+if (el.languageSelect) {
+  el.languageSelect.addEventListener("change", (event) => {
+    setLanguage(event.target.value);
+  });
+}
 
 el.gameTitle.addEventListener("input", () => {
   state.game.title = el.gameTitle.value;
@@ -983,7 +1314,7 @@ el.nextQuestion.addEventListener("click", () => {
 
 el.playerFinish.addEventListener("click", async () => {
   if (!canExportSubmission()) {
-    showError(el.playerError, "Complete all questions before finishing.");
+    showError(el.playerError, t("errors.completeQuestions"));
     return;
   }
   hideError(el.playerError);
@@ -1008,34 +1339,34 @@ el.importSubmit.addEventListener("click", async () => {
   for (const line of lines) {
     const sepIndex = line.indexOf(":");
     if (sepIndex <= 0) {
-      showError(el.importError, "Each line must be name:code.");
+      showError(el.importError, t("errors.lineFormat"));
       continue;
     }
     const name = line.slice(0, sepIndex).trim();
     const payload = line.slice(sepIndex + 1).trim();
     const player = state.game.players.find((p) => p.name === name);
     if (!player) {
-      showError(el.importError, `Unknown player name: ${name}`);
+      showError(el.importError, t("errors.unknownPlayer", { name }));
       continue;
     }
     try {
       const submission = await decodePayload(payload);
       if (submission.gameId !== state.game.gameId) {
-        showError(el.importError, `Game mismatch for ${name}.`);
+        showError(el.importError, t("errors.gameMismatch", { name }));
         continue;
       }
       if (submission.playerId !== player.id) {
-        showError(el.importError, `Player mismatch for ${name}.`);
+        showError(el.importError, t("errors.playerMismatch", { name }));
         continue;
       }
       if (state.game.submissions[player.id]) {
-        showError(el.importError, `Duplicate submission for ${name}.`);
+        showError(el.importError, t("errors.duplicateSubmission", { name }));
         continue;
       }
       state.game.submissions[player.id] = submission;
       saveGameLocal(state.game);
     } catch {
-      showError(el.importError, `Invalid payload for ${name}.`);
+      showError(el.importError, t("errors.invalidPayload", { name }));
     }
   }
   renderSubmissionStatus();
@@ -1177,6 +1508,9 @@ function currentRevealMaxSteps() {
 window.addEventListener("hashchange", initFromHash);
 
 (async () => {
+  state.language = getInitialLanguage();
+  renderLanguageOptions();
+  applyTranslations();
   ensureGame();
   await initFromHash();
 })();

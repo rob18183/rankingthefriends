@@ -34,6 +34,19 @@ body {
   display: none;
 }
 
+.language {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.language label {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .subtitle {
   color: var(--muted);
   margin-top: 4px;

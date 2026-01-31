@@ -34,12 +34,21 @@ This project is configured for GitHub Pages via GitHub Actions. The production b
 If you are temporarily serving the repository root as a static site, the QR code library is loaded from a CDN, so the app still works without a bundled `dist/` output.
 
 ## Documentation
-- `SPEC.md` – detailed product + flow spec
-- `LOGIC.md` – scoring + encoding logic
-- `WIREFLOW.md` – UI flow and steps
-- `LAYOUT.md` – low‑fidelity layouts
-- `COMPONENTS.md` – component responsibilities
-- `CONCEPT.md` – high‑level concept summary
+- `docs/SPEC.md` – detailed product + flow spec
+- `docs/LOGIC.md` – scoring + encoding logic
+- `docs/WIREFLOW.md` – UI flow and steps
+- `docs/LAYOUT.md` – low‑fidelity layouts
+- `docs/COMPONENTS.md` – component responsibilities
+- `docs/CONCEPT.md` – high‑level concept summary
+- `docs/PROJECT_STRUCTURE.md` – repo layout guide
+- `docs/TESTING.md` – testing checklist
+- `docs/I18N.md` – multi-language support guide
+
+## Contributing
+See `CONTRIBUTING.md` for setup, workflow, and code style guidance.
+
+## Security
+Please review `SECURITY.md` for vulnerability reporting details.
 
 ## Notes
 - No accounts or backend.
