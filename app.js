@@ -493,17 +493,33 @@ function allSubmissionsIn() {
   return state.game.players.length > 0 && state.game.players.every((p) => state.game.submissions[p.id]);
 }
 
-function buildConsensusScores(questionId) {
+function buildConsensusRanking(questionId) {
   const totals = {};
-  state.game.players.forEach((p) => (totals[p.id] = 0));
+  const counts = {};
+  state.game.players.forEach((p) => {
+    totals[p.id] = 0;
+    counts[p.id] = 0;
+  });
   Object.values(state.game.submissions).forEach((submission) => {
     const ranking = submission.byQuestion[questionId];
     if (!ranking) return;
     ranking.forEach((playerId, index) => {
-      totals[playerId] += state.game.players.length - index;
+      totals[playerId] += index;
+      counts[playerId] += 1;
     });
   });
-  return totals;
+  const ranked = state.game.players.map((player) => {
+    const count = counts[player.id] || 1;
+    return {
+      player,
+      average: totals[player.id] / count,
+    };
+  });
+  ranked.sort((a, b) => {
+    if (a.average !== b.average) return a.average - b.average;
+    return a.player.name.localeCompare(b.player.name);
+  });
+  return ranked.map((row) => row.player.id);
 }
 
 function maxRankDistance(playerCount) {
@@ -517,8 +533,7 @@ function maxRankDistance(playerCount) {
 function scoreRound(questionId) {
   const totals = {};
   state.game.players.forEach((p) => (totals[p.id] = 0));
-  const consensusScores = buildConsensusScores(questionId);
-  const consensusOrder = sortScores(consensusScores).map((row) => row.player.id);
+  const consensusOrder = buildConsensusRanking(questionId);
   if (!consensusOrder.length) return totals;
   const consensusPositions = new Map();
   consensusOrder.forEach((playerId, index) => {
@@ -538,10 +553,11 @@ function scoreRound(questionId) {
   return totals;
 }
 
-function scoreTotals() {
+function scoreTotalsThrough(questionIndex) {
   const totals = {};
   state.game.players.forEach((p) => (totals[p.id] = 0));
-  state.game.questions.forEach((question) => {
+  const lastIndex = Math.min(questionIndex, state.game.questions.length - 1);
+  state.game.questions.slice(0, lastIndex + 1).forEach((question) => {
     const round = scoreRound(question.id);
     Object.entries(round).forEach(([playerId, points]) => {
       totals[playerId] += points;
@@ -562,19 +578,26 @@ function sortScores(scoreMap) {
 function renderReveal() {
   const question = state.game.questions[state.revealIndex] || { text: "No questions" };
   el.revealQuestionText.textContent = question.text || "Untitled question";
-  const consensusScores = question.id ? buildConsensusScores(question.id) : {};
-  const consensusOrder = sortScores(consensusScores).map((row) => row.player.id);
+  const consensusOrder = question.id ? buildConsensusRanking(question.id) : [];
   const roundScores = question.id ? scoreRound(question.id) : {};
-  const totalScores = scoreTotals();
+  const showTotals = state.revealIndex >= 1;
+  const totalScores = showTotals ? scoreTotalsThrough(state.revealIndex) : {};
   renderRevealList(consensusOrder);
   renderLeaderboard(el.roundLeaderboard, roundScores);
-  renderLeaderboard(el.totalLeaderboard, totalScores);
+  if (showTotals) {
+    renderLeaderboard(el.totalLeaderboard, totalScores);
+  } else {
+    el.totalLeaderboard.innerHTML = "";
+  }
   el.revealStage.classList.toggle("hidden", !state.revealFullscreenReady);
   el.revealPrompt.classList.toggle("hidden", state.revealPhase !== "prompt");
   el.revealQuestionPanel.classList.toggle("hidden", state.revealPhase !== "question");
   el.revealRankingPanel.classList.toggle("hidden", state.revealPhase !== "reveal");
   el.revealRoundScorePanel.classList.toggle("hidden", state.revealPhase !== "roundscore");
-  el.revealTotalPanel.classList.toggle("hidden", state.revealPhase !== "totals");
+  el.revealTotalPanel.classList.toggle(
+    "hidden",
+    !showTotals || state.revealPhase !== "totals"
+  );
   el.revealPrev.disabled = state.revealIndex <= 0 && state.revealPhase === "prompt";
   el.revealNext.disabled =
     state.revealIndex >= state.game.questions.length - 1 && state.revealPhase === "totals";
@@ -822,7 +845,7 @@ el.revealPrev.addEventListener("click", () => {
   if (state.revealPhase === "prompt") {
     if (state.revealIndex > 0) {
       state.revealIndex -= 1;
-      state.revealPhase = "totals";
+      state.revealPhase = state.revealIndex >= 1 ? "totals" : "roundscore";
       state.revealStep = state.game.players.length;
     }
   } else if (state.revealPhase === "question") {
@@ -855,7 +878,13 @@ el.revealNext.addEventListener("click", () => {
       state.revealPhase = "roundscore";
     }
   } else if (state.revealPhase === "roundscore") {
-    state.revealPhase = "totals";
+    if (state.revealIndex >= 1) {
+      state.revealPhase = "totals";
+    } else if (state.revealIndex < state.game.questions.length - 1) {
+      state.revealIndex += 1;
+      state.revealPhase = "prompt";
+      state.revealStep = 0;
+    }
   } else if (state.revealPhase === "totals") {
     if (state.revealIndex < state.game.questions.length - 1) {
       state.revealIndex += 1;
