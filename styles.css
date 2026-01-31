@@ -269,6 +269,44 @@ body {
   background: #f7ecec;
 }
 
+.reveal-scoring {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.scoring-options {
+  display: grid;
+  gap: 16px;
+}
+
+.scoring-option {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.scoring-option input {
+  margin-top: 4px;
+}
+
+.scoring-title {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.scoring-proscons {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
 .score-explain {
   margin: 6px 0 12px;
 }

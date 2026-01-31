@@ -164,6 +164,39 @@
         </div>
 
         <div id="reveal-stage" class="card reveal-stage">
+          <div class="reveal-scoring">
+            <h3>Choose scoring</h3>
+            <div class="scoring-options">
+              <label class="scoring-option" for="scoring-simple">
+                <input id="scoring-simple" type="radio" name="scoring" value="simple" />
+                <div>
+                  <span class="scoring-title">Simple (exact ranks)</span>
+                  <p class="muted">
+                    Score 1 point for every player placed in the exact position (e.g. John is
+                    fourth).
+                  </p>
+                  <ul class="scoring-proscons">
+                    <li><strong>Pros:</strong> easy to explain and highlights perfect hits.</li>
+                    <li><strong>Cons:</strong> near-misses get no credit.</li>
+                  </ul>
+                </div>
+              </label>
+              <label class="scoring-option" for="scoring-weighted">
+                <input id="scoring-weighted" type="radio" name="scoring" value="weighted" />
+                <div>
+                  <span class="scoring-title">Weighted (distance-based)</span>
+                  <p class="muted">
+                    Score more points when your ranking is closer to the group consensus and fewer
+                    points when you are far off.
+                  </p>
+                  <ul class="scoring-proscons">
+                    <li><strong>Pros:</strong> rewards close guesses and keeps scores tight.</li>
+                    <li><strong>Cons:</strong> needs a quick explanation before playing.</li>
+                  </ul>
+                </div>
+              </label>
+            </div>
+          </div>
           <div id="reveal-prompt" class="reveal-prompt hidden">
             <h3>Presenter, come forward</h3>
             <p class="muted">
@@ -182,17 +215,12 @@
           </div>
           <div id="reveal-roundscore-panel" class="hidden">
             <h3 class="reveal-question">Round score</h3>
-            <p class="muted score-explain">
-              Points gained this round based on how closely each ranking matches the group
-              consensus.
-            </p>
+            <p class="muted score-explain" id="round-score-explain"></p>
             <ol id="round-leaderboard" class="leaderboard"></ol>
           </div>
           <div id="reveal-total-panel" class="hidden">
             <h3 class="reveal-question">Total score</h3>
-            <p class="muted score-explain">
-              Running total after this round (shown starting in round 2).
-            </p>
+            <p class="muted score-explain" id="total-score-explain"></p>
             <ol id="total-leaderboard" class="leaderboard"></ol>
           </div>
           <div class="actions">
