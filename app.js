@@ -69,6 +69,8 @@ const el = {
   revealSkipFullscreen: document.getElementById("reveal-skip-fullscreen"),
   revealStage: document.getElementById("reveal-stage"),
   revealPrompt: document.getElementById("reveal-prompt"),
+  revealPresenterName: document.getElementById("reveal-presenter-name"),
+  revealPresenterLabel: document.getElementById("reveal-presenter-label"),
   revealQuestionPanel: document.getElementById("reveal-question-panel"),
   revealQuestionText: document.getElementById("reveal-question-text"),
   revealRankingPanel: document.getElementById("reveal-ranking-panel"),
@@ -241,6 +243,35 @@ function ensureGame() {
   if (!state.game) state.game = emptyGame();
 }
 
+function getDefaultPresenterId(index) {
+  const players = state.game.players;
+  if (!players.length) return null;
+  const presenter = players[index % players.length];
+  return presenter ? presenter.id : null;
+}
+
+function ensurePresenter(question, index) {
+  const players = state.game.players;
+  if (!players.length) {
+    question.presenterId = null;
+    return false;
+  }
+  const valid = players.some((player) => player.id === question.presenterId);
+  if (!valid) {
+    question.presenterId = getDefaultPresenterId(index);
+    return true;
+  }
+  return false;
+}
+
+function normalizePresenters() {
+  let changed = false;
+  state.game.questions.forEach((question, index) => {
+    if (ensurePresenter(question, index)) changed = true;
+  });
+  if (changed) saveGameLocal(state.game);
+}
+
 function renderPlayersList() {
   el.playersList.innerHTML = "";
   state.game.players.forEach((player) => {
@@ -253,6 +284,7 @@ function renderPlayersList() {
       player.name = input.value;
       saveGameLocal(state.game);
       renderPlayerSelect();
+      renderQuestionsList();
     });
     input.disabled = Boolean(state.game.finalizedAt);
     const remove = document.createElement("button");
@@ -264,6 +296,7 @@ function renderPlayersList() {
       saveGameLocal(state.game);
       renderPlayersList();
       renderPlayerSelect();
+      renderQuestionsList();
     });
     remove.disabled = Boolean(state.game.finalizedAt);
     row.appendChild(input);
@@ -274,7 +307,7 @@ function renderPlayersList() {
 
 function renderQuestionsList() {
   el.questionsList.innerHTML = "";
-  state.game.questions.forEach((question) => {
+  state.game.questions.forEach((question, index) => {
     const row = document.createElement("div");
     row.className = "list-row";
     const input = document.createElement("input");
@@ -286,6 +319,28 @@ function renderQuestionsList() {
       renderPlayerQuestion();
     });
     input.disabled = Boolean(state.game.finalizedAt);
+    const presenter = document.createElement("select");
+    const presenterUpdated = ensurePresenter(question, index);
+    if (presenterUpdated) saveGameLocal(state.game);
+    presenter.disabled = Boolean(state.game.finalizedAt) || !state.game.players.length;
+    if (!state.game.players.length) {
+      const emptyOption = document.createElement("option");
+      emptyOption.value = "";
+      emptyOption.textContent = "Add players first";
+      presenter.appendChild(emptyOption);
+    } else {
+      state.game.players.forEach((player) => {
+        const option = document.createElement("option");
+        option.value = player.id;
+        option.textContent = player.name || "(unnamed)";
+        presenter.appendChild(option);
+      });
+      presenter.value = question.presenterId || "";
+    }
+    presenter.addEventListener("change", () => {
+      question.presenterId = presenter.value || null;
+      saveGameLocal(state.game);
+    });
     const remove = document.createElement("button");
     remove.className = "btn";
     remove.textContent = "Remove";
@@ -298,6 +353,7 @@ function renderQuestionsList() {
     });
     remove.disabled = Boolean(state.game.finalizedAt);
     row.appendChild(input);
+    row.appendChild(presenter);
     row.appendChild(remove);
     el.questionsList.appendChild(row);
   });
@@ -575,14 +631,41 @@ function sortScores(scoreMap) {
   return rows;
 }
 
+function getPresenterForQuestion(question, index) {
+  ensurePresenter(question, index);
+  return state.game.players.find((player) => player.id === question.presenterId) || null;
+}
+
+function getPresenterRanking(questionId, presenterId) {
+  if (!presenterId) return [];
+  const submission = state.game.submissions[presenterId];
+  if (!submission || !submission.byQuestion) return [];
+  return submission.byQuestion[questionId] || [];
+}
+
+function getRevealMaxSteps(questionId) {
+  if (!questionId) return 0;
+  const consensusOrder = buildConsensusRanking(questionId);
+  return consensusOrder.length * 2;
+}
+
 function renderReveal() {
   const question = state.game.questions[state.revealIndex] || { text: "No questions" };
   el.revealQuestionText.textContent = question.text || "Untitled question";
   const consensusOrder = question.id ? buildConsensusRanking(question.id) : [];
+  const presenter = question.id ? getPresenterForQuestion(question, state.revealIndex) : null;
+  const presenterRanking = question.id
+    ? getPresenterRanking(question.id, presenter ? presenter.id : null)
+    : [];
+  const presenterName = presenter ? presenter.name : "Presenter TBD";
+  el.revealPresenterName.textContent = presenterName;
+  el.revealPresenterLabel.textContent = presenterName;
   const roundScores = question.id ? scoreRound(question.id) : {};
   const showTotals = state.revealIndex >= 1;
   const totalScores = showTotals ? scoreTotalsThrough(state.revealIndex) : {};
-  renderRevealList(consensusOrder);
+  const maxSteps = getRevealMaxSteps(question.id);
+  if (state.revealStep > maxSteps) state.revealStep = maxSteps;
+  renderRevealList(consensusOrder, presenterRanking, state.revealStep);
   renderLeaderboard(el.roundLeaderboard, roundScores);
   if (showTotals) {
     renderLeaderboard(el.totalLeaderboard, totalScores);
@@ -603,25 +686,71 @@ function renderReveal() {
     state.revealIndex >= state.game.questions.length - 1 && state.revealPhase === "totals";
 }
 
-function renderRevealList(ranking) {
+function renderRevealList(consensusOrder, presenterOrder, revealStep) {
   el.roundReveal.innerHTML = "";
-  const total = ranking.length;
-  const revealCount =
+  const total = consensusOrder.length;
+  const activeStep =
     state.revealPhase === "reveal" ||
     state.revealPhase === "roundscore" ||
     state.revealPhase === "totals"
-      ? Math.min(state.revealStep, total)
+      ? Math.min(revealStep, total * 2)
       : 0;
-  ranking.forEach((playerId, index) => {
-    const player = state.game.players.find((p) => p.id === playerId);
+  consensusOrder.forEach((playerId, index) => {
     const place = index + 1;
+    const presenterId = presenterOrder[index];
+    const presenter = state.game.players.find((p) => p.id === presenterId);
+    const consensus = state.game.players.find((p) => p.id === playerId);
+    const presenterVisible = activeStep >= index * 2 + 1;
+    const matchVisible = activeStep >= index * 2 + 2;
     const li = document.createElement("li");
-    const revealFromBottom = index >= total - revealCount;
-    if (revealFromBottom) {
-      li.textContent = `${place}. ${player ? player.name : "Unknown"}`;
+    li.className = "reveal-row";
+    const rank = document.createElement("span");
+    rank.className = "reveal-rank";
+    rank.textContent = `${place}.`;
+    const picks = document.createElement("div");
+    picks.className = "reveal-picks";
+    const presenterRow = document.createElement("div");
+    presenterRow.className = "reveal-pick";
+    const presenterLabel = document.createElement("span");
+    presenterLabel.className = "reveal-label";
+    presenterLabel.textContent = "Presenter";
+    const presenterValue = document.createElement("span");
+    presenterValue.className = "reveal-value";
+    presenterValue.textContent = presenterVisible
+      ? presenter
+        ? presenter.name
+        : "Unknown"
+      : "...";
+    presenterRow.appendChild(presenterLabel);
+    presenterRow.appendChild(presenterValue);
+    const groupRow = document.createElement("div");
+    groupRow.className = "reveal-pick";
+    const groupLabel = document.createElement("span");
+    groupLabel.className = "reveal-label";
+    groupLabel.textContent = "Group avg";
+    const groupValue = document.createElement("span");
+    groupValue.className = "reveal-value";
+    groupValue.textContent = matchVisible
+      ? consensus
+        ? consensus.name
+        : "Unknown"
+      : "...";
+    groupRow.appendChild(groupLabel);
+    groupRow.appendChild(groupValue);
+    picks.appendChild(presenterRow);
+    picks.appendChild(groupRow);
+    const badge = document.createElement("span");
+    badge.className = "reveal-badge";
+    if (matchVisible) {
+      const isMatch = presenterId && presenterId === playerId;
+      li.classList.add(isMatch ? "match" : "miss");
+      badge.textContent = isMatch ? "Match" : "No match";
     } else {
-      li.textContent = `${place}. ...`;
+      badge.textContent = "";
     }
+    li.appendChild(rank);
+    li.appendChild(picks);
+    li.appendChild(badge);
     el.roundReveal.appendChild(li);
   });
 }
@@ -663,6 +792,7 @@ async function initFromHash() {
   } else {
     state.game = loadGameLocal() || emptyGame();
   }
+  normalizePresenters();
   setView(view || "setup");
   if (view === "reveal") {
     state.revealPhase = "prompt";
@@ -710,7 +840,12 @@ el.addPlayer.addEventListener("click", () => {
 });
 
 el.addQuestion.addEventListener("click", () => {
-  state.game.questions.push({ id: createId("q"), text: "" });
+  const index = state.game.questions.length;
+  state.game.questions.push({
+    id: createId("q"),
+    text: "",
+    presenterId: getDefaultPresenterId(index),
+  });
   handleSetupChange();
   renderQuestionsList();
   renderPlayerQuestion();
@@ -846,7 +981,7 @@ el.revealPrev.addEventListener("click", () => {
     if (state.revealIndex > 0) {
       state.revealIndex -= 1;
       state.revealPhase = state.revealIndex >= 1 ? "totals" : "roundscore";
-      state.revealStep = state.game.players.length;
+      state.revealStep = currentRevealMaxSteps();
     }
   } else if (state.revealPhase === "question") {
     state.revealPhase = "prompt";
@@ -858,6 +993,7 @@ el.revealPrev.addEventListener("click", () => {
     }
   } else if (state.revealPhase === "roundscore") {
     state.revealPhase = "reveal";
+    state.revealStep = currentRevealMaxSteps();
   } else if (state.revealPhase === "totals") {
     state.revealPhase = "roundscore";
   }
@@ -866,13 +1002,14 @@ el.revealPrev.addEventListener("click", () => {
 
 el.revealNext.addEventListener("click", () => {
   if (!state.revealFullscreenReady) return;
+  const maxSteps = currentRevealMaxSteps();
   if (state.revealPhase === "prompt") {
     state.revealPhase = "question";
   } else if (state.revealPhase === "question") {
     state.revealPhase = "reveal";
     state.revealStep = 1;
   } else if (state.revealPhase === "reveal") {
-    if (state.revealStep < state.game.players.length) {
+    if (state.revealStep < maxSteps) {
       state.revealStep += 1;
     } else {
       state.revealPhase = "roundscore";
@@ -930,6 +1067,11 @@ async function encodeFullGame(game) {
 function renderQr(canvas, text) {
   if (!canvas) return;
   QRCode.toCanvas(canvas, text, { width: 220, margin: 1 }, () => {});
+}
+
+function currentRevealMaxSteps() {
+  const question = state.game.questions[state.revealIndex];
+  return question ? getRevealMaxSteps(question.id) : 0;
 }
 
 window.addEventListener("hashchange", initFromHash);
