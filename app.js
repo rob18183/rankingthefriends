@@ -1,4 +1,4 @@
-import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/+esm";
+import QRCode from "qrcode";
 
 const STORAGE_KEY = "ryf:game";
 const HASH_PREFIX = "g";
