@@ -11,12 +11,60 @@ import {
   scoreRound,
   scoreTotalsThrough,
   sortScores,
-} from "./game-logic.js";
+} from "./game-logic.ts";
+import type {
+  Game,
+  LocalizedText,
+  NormalizedScoringMode,
+  Player,
+  Question,
+  RevealPhase,
+  Submission,
+} from "./game-logic.ts";
+
+type Language = "en" | "nl";
+type View = "setup" | "player" | "host" | "reveal" | "inspiration";
+type PlayerFormStep = "identity" | "questions" | "submit";
+type TranslationValue = string | { [key: string]: TranslationValue };
+type Translations = Record<Language, TranslationValue>;
+type QuestionBankEntry = {
+  id: string;
+  category: string;
+  text: LocalizedText;
+};
+
+type PlayerFormState = {
+  playerId: string | null;
+  visibleCount: number;
+  byQuestion: Record<string, string[]>;
+  markedSubmitted: boolean;
+  step: PlayerFormStep;
+};
+
+type SubmissionPayload = Submission & {
+  version: number;
+  gameId?: string;
+  submittedAt: string;
+};
+
+type AppState = {
+  view: View;
+  game: Game;
+  language: Language;
+  shareEncoded: string;
+  playerForm: PlayerFormState;
+  revealIndex: number;
+  revealStep: number;
+  revealPhase: RevealPhase;
+  revealFullscreenReady: boolean;
+};
+
+const getEl = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const STORAGE_KEY = "ryf:game";
 const HASH_PREFIX = "g";
 const LANG_STORAGE_KEY = "ryf:lang";
-const DEMO_GAME = {
+const DEMO_GAME: Game = {
   version: 1,
   gameId: "game_demo_2024",
   title: "Demo Game Night",
@@ -120,7 +168,7 @@ const DEMO_GAME = {
   settings: { scoring: "weighted", reveal: "rounds" },
 };
 
-const translations = {
+const translations: Translations = {
   en: {
     app: {
       title: "Ranking Your Friends",
@@ -483,7 +531,7 @@ const roundScoreQuips = {
   ],
 };
 
-const questionBank = [
+const questionBank: QuestionBankEntry[] = [
   {
     id: "lost",
     category: "funny",
@@ -797,7 +845,7 @@ const questionBank = [
   },
 ];
 
-const topQuestionIds = [
+const topQuestionIds: string[] = [
   "lost",
   "party",
   "caring",
@@ -810,9 +858,9 @@ const topQuestionIds = [
   "accidental-famous",
 ];
 
-const state = {
+const state: AppState = {
   view: "setup",
-  game: null,
+  game: null as unknown as Game,
   language: "en",
   shareEncoded: "",
   playerForm: {
@@ -829,92 +877,92 @@ const state = {
 };
 
 const el = {
-  appHeader: document.getElementById("app-header"),
-  navBar: document.getElementById("nav-bar"),
-  navSetup: document.getElementById("nav-setup"),
-  navHost: document.getElementById("nav-host"),
-  navInspiration: document.getElementById("nav-inspiration"),
-  languageSelect: document.getElementById("language-select"),
-  viewSetup: document.getElementById("view-setup"),
-  viewPlayer: document.getElementById("view-player"),
-  viewHost: document.getElementById("view-host"),
-  viewReveal: document.getElementById("view-reveal"),
-  viewInspiration: document.getElementById("view-inspiration"),
-  gameTitle: document.getElementById("game-title"),
-  demoRevealLink: document.getElementById("demo-reveal-link"),
-  playersList: document.getElementById("players-list"),
-  addPlayer: document.getElementById("add-player"),
-  questionsList: document.getElementById("questions-list"),
-  addQuestion: document.getElementById("add-question"),
-  suggestedQuestions: document.getElementById("suggested-questions"),
-  addTopQuestions: document.getElementById("add-top-questions"),
-  openInspiration: document.getElementById("open-inspiration"),
-  inspirationGroups: document.getElementById("inspiration-groups"),
-  shareUrl: document.getElementById("share-url"),
-  copyShare: document.getElementById("copy-share"),
-  finalizedPanel: document.getElementById("finalized-panel"),
-  gameCode: document.getElementById("game-code"),
-  finalizeGame: document.getElementById("finalize-game"),
-  goHost: document.getElementById("go-host"),
-  setupError: document.getElementById("setup-error"),
-  playerSelect: document.getElementById("player-select"),
-  playerConfirm: document.getElementById("player-confirm"),
-  playerStepIdentity: document.getElementById("player-step-identity"),
-  playerStepQuestions: document.getElementById("player-step-questions"),
-  playerStepSubmit: document.getElementById("player-step-submit"),
-  playerProgress: document.getElementById("player-progress"),
-  playerQuestions: document.getElementById("player-questions"),
-  nextQuestion: document.getElementById("next-question"),
-  playerFinish: document.getElementById("player-finish"),
-  submissionLinePanel: document.getElementById("submission-line-panel"),
-  submissionLine: document.getElementById("submission-line"),
-  copySubmissionLine: document.getElementById("copy-submission-line"),
-  playerError: document.getElementById("player-error"),
-  importText: document.getElementById("import-text"),
-  importSubmit: document.getElementById("import-submit"),
-  importError: document.getElementById("import-error"),
-  submissionStatus: document.getElementById("submission-status"),
-  startReveal: document.getElementById("start-reveal"),
-  revealLinkPanel: document.getElementById("reveal-link-panel"),
-  revealUrl: document.getElementById("reveal-url"),
-  copyReveal: document.getElementById("copy-reveal"),
-  openReveal: document.getElementById("open-reveal"),
-  revealQr: document.getElementById("reveal-qr"),
-  revealFullscreen: document.getElementById("reveal-fullscreen"),
-  revealEnterFullscreen: document.getElementById("reveal-enter-fullscreen"),
-  revealSkipFullscreen: document.getElementById("reveal-skip-fullscreen"),
-  revealStage: document.getElementById("reveal-stage"),
-  revealTitle: document.getElementById("reveal-title"),
-  revealPromptTitle: document.getElementById("reveal-prompt-title"),
-  revealPrompt: document.getElementById("reveal-prompt"),
-  revealPresenterLine: document.getElementById("reveal-presenter-line"),
-  revealPresenterLabel: document.getElementById("reveal-presenter-label"),
-  revealQuestionPanel: document.getElementById("reveal-question-panel"),
-  revealQuestionText: document.getElementById("reveal-question-text"),
-  revealRankingPanel: document.getElementById("reveal-ranking-panel"),
-  revealRankingTitle: document.getElementById("reveal-ranking-title"),
-  revealColumnPresenter: document.getElementById("reveal-column-presenter"),
-  revealProgressText: document.getElementById("reveal-progress-text"),
-  revealProgressFill: document.getElementById("reveal-progress-fill"),
-  revealProgressDots: document.getElementById("reveal-progress-dots"),
-  revealRoundScorePanel: document.getElementById("reveal-roundscore-panel"),
-  revealTotalPanel: document.getElementById("reveal-total-panel"),
-  revealEndPanel: document.getElementById("reveal-end-panel"),
-  revealScoreChart: document.getElementById("reveal-score-chart"),
-  revealScoreLegend: document.getElementById("reveal-score-legend"),
-  revealPodium: document.getElementById("reveal-podium"),
-  scoringSimple: document.getElementById("scoring-simple"),
-  scoringWeighted: document.getElementById("scoring-weighted"),
-  roundScoreExplain: document.getElementById("round-score-explain"),
-  totalScoreExplain: document.getElementById("total-score-explain"),
-  roundLeaderboard: document.getElementById("round-leaderboard"),
-  roundReveal: document.getElementById("round-reveal"),
-  totalLeaderboard: document.getElementById("total-leaderboard"),
-  revealPrev: document.getElementById("reveal-prev"),
-  revealNext: document.getElementById("reveal-next"),
+  appHeader: getEl<HTMLElement>("app-header"),
+  navBar: getEl<HTMLElement>("nav-bar"),
+  navSetup: getEl<HTMLElement>("nav-setup"),
+  navHost: getEl<HTMLElement>("nav-host"),
+  navInspiration: getEl<HTMLElement>("nav-inspiration"),
+  languageSelect: getEl<HTMLSelectElement>("language-select"),
+  viewSetup: getEl<HTMLElement>("view-setup"),
+  viewPlayer: getEl<HTMLElement>("view-player"),
+  viewHost: getEl<HTMLElement>("view-host"),
+  viewReveal: getEl<HTMLElement>("view-reveal"),
+  viewInspiration: getEl<HTMLElement>("view-inspiration"),
+  gameTitle: getEl<HTMLInputElement>("game-title"),
+  demoRevealLink: getEl<HTMLAnchorElement>("demo-reveal-link"),
+  playersList: getEl<HTMLElement>("players-list"),
+  addPlayer: getEl<HTMLButtonElement>("add-player"),
+  questionsList: getEl<HTMLElement>("questions-list"),
+  addQuestion: getEl<HTMLButtonElement>("add-question"),
+  suggestedQuestions: getEl<HTMLElement>("suggested-questions"),
+  addTopQuestions: getEl<HTMLButtonElement>("add-top-questions"),
+  openInspiration: getEl<HTMLButtonElement>("open-inspiration"),
+  inspirationGroups: getEl<HTMLElement>("inspiration-groups"),
+  shareUrl: getEl<HTMLInputElement>("share-url"),
+  copyShare: getEl<HTMLButtonElement>("copy-share"),
+  finalizedPanel: getEl<HTMLElement>("finalized-panel"),
+  gameCode: getEl<HTMLTextAreaElement>("game-code"),
+  finalizeGame: getEl<HTMLButtonElement>("finalize-game"),
+  goHost: getEl<HTMLButtonElement>("go-host"),
+  setupError: getEl<HTMLElement>("setup-error"),
+  playerSelect: getEl<HTMLSelectElement>("player-select"),
+  playerConfirm: getEl<HTMLButtonElement>("player-confirm"),
+  playerStepIdentity: getEl<HTMLElement>("player-step-identity"),
+  playerStepQuestions: getEl<HTMLElement>("player-step-questions"),
+  playerStepSubmit: getEl<HTMLElement>("player-step-submit"),
+  playerProgress: getEl<HTMLElement>("player-progress"),
+  playerQuestions: getEl<HTMLElement>("player-questions"),
+  nextQuestion: getEl<HTMLButtonElement>("next-question"),
+  playerFinish: getEl<HTMLButtonElement>("player-finish"),
+  submissionLinePanel: getEl<HTMLElement>("submission-line-panel"),
+  submissionLine: getEl<HTMLInputElement>("submission-line"),
+  copySubmissionLine: getEl<HTMLButtonElement>("copy-submission-line"),
+  playerError: getEl<HTMLElement>("player-error"),
+  importText: getEl<HTMLTextAreaElement>("import-text"),
+  importSubmit: getEl<HTMLButtonElement>("import-submit"),
+  importError: getEl<HTMLElement>("import-error"),
+  submissionStatus: getEl<HTMLElement>("submission-status"),
+  startReveal: getEl<HTMLButtonElement>("start-reveal"),
+  revealLinkPanel: getEl<HTMLElement>("reveal-link-panel"),
+  revealUrl: getEl<HTMLInputElement>("reveal-url"),
+  copyReveal: getEl<HTMLButtonElement>("copy-reveal"),
+  openReveal: getEl<HTMLButtonElement>("open-reveal"),
+  revealQr: getEl<HTMLCanvasElement>("reveal-qr"),
+  revealFullscreen: getEl<HTMLElement>("reveal-fullscreen"),
+  revealEnterFullscreen: getEl<HTMLButtonElement>("reveal-enter-fullscreen"),
+  revealSkipFullscreen: getEl<HTMLButtonElement>("reveal-skip-fullscreen"),
+  revealStage: getEl<HTMLElement>("reveal-stage"),
+  revealTitle: getEl<HTMLElement>("reveal-title"),
+  revealPromptTitle: getEl<HTMLElement>("reveal-prompt-title"),
+  revealPrompt: getEl<HTMLElement>("reveal-prompt"),
+  revealPresenterLine: getEl<HTMLElement>("reveal-presenter-line"),
+  revealPresenterLabel: getEl<HTMLElement>("reveal-presenter-label"),
+  revealQuestionPanel: getEl<HTMLElement>("reveal-question-panel"),
+  revealQuestionText: getEl<HTMLElement>("reveal-question-text"),
+  revealRankingPanel: getEl<HTMLElement>("reveal-ranking-panel"),
+  revealRankingTitle: getEl<HTMLElement>("reveal-ranking-title"),
+  revealColumnPresenter: getEl<HTMLElement>("reveal-column-presenter"),
+  revealProgressText: getEl<HTMLElement>("reveal-progress-text"),
+  revealProgressFill: getEl<HTMLElement>("reveal-progress-fill"),
+  revealProgressDots: getEl<HTMLElement>("reveal-progress-dots"),
+  revealRoundScorePanel: getEl<HTMLElement>("reveal-roundscore-panel"),
+  revealTotalPanel: getEl<HTMLElement>("reveal-total-panel"),
+  revealEndPanel: getEl<HTMLElement>("reveal-end-panel"),
+  revealScoreChart: getEl<HTMLElement>("reveal-score-chart"),
+  revealScoreLegend: getEl<HTMLElement>("reveal-score-legend"),
+  revealPodium: getEl<HTMLElement>("reveal-podium"),
+  scoringSimple: getEl<HTMLInputElement>("scoring-simple"),
+  scoringWeighted: getEl<HTMLInputElement>("scoring-weighted"),
+  roundScoreExplain: getEl<HTMLElement>("round-score-explain"),
+  totalScoreExplain: getEl<HTMLElement>("total-score-explain"),
+  roundLeaderboard: getEl<HTMLElement>("round-leaderboard"),
+  roundReveal: getEl<HTMLElement>("round-reveal"),
+  totalLeaderboard: getEl<HTMLElement>("total-leaderboard"),
+  revealPrev: getEl<HTMLButtonElement>("reveal-prev"),
+  revealNext: getEl<HTMLButtonElement>("reveal-next"),
 };
 
-function createId(prefix) {
+function createId(prefix: string): string {
   const cryptoObj = typeof globalThis !== "undefined" ? globalThis.crypto : undefined;
   if (cryptoObj && typeof cryptoObj.randomUUID === "function") {
     return `${prefix}_${cryptoObj.randomUUID()}`;
@@ -922,27 +970,32 @@ function createId(prefix) {
   return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
-function getInitialLanguage() {
+function getInitialLanguage(): Language {
   const stored = localStorage.getItem(LANG_STORAGE_KEY);
-  if (stored && translations[stored]) return stored;
+  if (stored && stored in translations) return stored as Language;
   const browser = navigator.language ? navigator.language.toLowerCase() : "en";
   if (browser.startsWith("nl")) return "nl";
   return "en";
 }
 
-function t(key, vars = {}) {
+function t(key: string, vars: Record<string, string | number> = {}): string {
   const table = translations[state.language] || translations.en;
-  const value = key.split(".").reduce((acc, part) => (acc ? acc[part] : null), table);
+  const value = key.split(".").reduce<TranslationValue | null>((acc, part) => {
+    if (acc && typeof acc === "object" && !Array.isArray(acc) && part in acc) {
+      return (acc as Record<string, TranslationValue>)[part];
+    }
+    return null;
+  }, table);
   if (typeof value !== "string") return key;
   return value.replace(/\{(\w+)\}/g, (match, name) => {
     if (Object.prototype.hasOwnProperty.call(vars, name)) {
-      return vars[name];
+      return String(vars[name]);
     }
     return match;
   });
 }
 
-function applyTranslations() {
+function applyTranslations(): void {
   document.documentElement.lang = state.language;
   document.title = t("app.title");
   document.querySelectorAll("[data-i18n]").forEach((node) => {
@@ -955,17 +1008,21 @@ function applyTranslations() {
   });
 }
 
-function getQuestionText(question) {
+function getQuestionText(question?: Question | null): string {
   if (!question || !question.text) return "";
+  if (typeof question.text === "string") return question.text;
   return question.text[state.language] || question.text.en || "";
 }
 
-function getQuestionCategoryLabel(category) {
+function getQuestionTextValue(question: Question): string {
+  return typeof question.text === "string" ? question.text : getQuestionText(question);
+}
+
+function getQuestionCategoryLabel(category: string): string {
   return t(`inspiration.categories.${category}`);
 }
 
-function renderLanguageOptions() {
-  if (!el.languageSelect) return;
+function renderLanguageOptions(): void {
   el.languageSelect.innerHTML = "";
   Object.keys(translations).forEach((lang) => {
     const option = document.createElement("option");
@@ -976,7 +1033,7 @@ function renderLanguageOptions() {
   el.languageSelect.value = state.language;
 }
 
-function setLanguage(lang) {
+function setLanguage(lang: Language): void {
   if (!translations[lang]) return;
   state.language = lang;
   localStorage.setItem(LANG_STORAGE_KEY, lang);
@@ -984,7 +1041,7 @@ function setLanguage(lang) {
   renderAll();
 }
 
-function emptyGame() {
+function emptyGame(): Game {
   return {
     version: 1,
     gameId: createId("game"),
@@ -998,7 +1055,7 @@ function emptyGame() {
   };
 }
 
-function parseHash() {
+function parseHash(): { view: string | null; g: string | null } {
   const raw = location.hash.slice(1);
   const params = new URLSearchParams(raw);
   return {
@@ -1007,29 +1064,29 @@ function parseHash() {
   };
 }
 
-function setHash(view, g) {
+function setHash(view?: string | null, g?: string | null): void {
   const params = new URLSearchParams();
   if (view) params.set("v", view);
   if (g) params.set(HASH_PREFIX, g);
   location.hash = params.toString();
 }
 
-function utf8ToBytes(text) {
+function utf8ToBytes(text: string): Uint8Array {
   return new TextEncoder().encode(text);
 }
 
-function bytesToUtf8(bytes) {
+function bytesToUtf8(bytes: Uint8Array): string {
   return new TextDecoder().decode(bytes);
 }
 
-function bytesToBase64url(bytes) {
+function bytesToBase64url(bytes: Uint8Array): string {
   let binary = "";
   bytes.forEach((b) => (binary += String.fromCharCode(b)));
   const base64 = btoa(binary);
   return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-function base64urlToBytes(str) {
+function base64urlToBytes(str: string): Uint8Array {
   const base64 = str.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((str.length + 3) % 4);
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
@@ -1037,7 +1094,7 @@ function base64urlToBytes(str) {
   return bytes;
 }
 
-async function deflateRaw(bytes) {
+async function deflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
   if (!("CompressionStream" in window)) return bytes;
   const stream = new CompressionStream("deflate-raw");
   const writer = stream.writable.getWriter();
@@ -1047,7 +1104,7 @@ async function deflateRaw(bytes) {
   return new Uint8Array(out);
 }
 
-async function inflateRaw(bytes) {
+async function inflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
   if (!("DecompressionStream" in window)) return bytes;
   const stream = new DecompressionStream("deflate-raw");
   const writer = stream.writable.getWriter();
@@ -1057,34 +1114,34 @@ async function inflateRaw(bytes) {
   return new Uint8Array(out);
 }
 
-async function encodeGame(game) {
+async function encodeGame(game: Game): Promise<string> {
   const json = JSON.stringify(game);
   const compressed = await deflateRaw(utf8ToBytes(json));
   return bytesToBase64url(compressed);
 }
 
-async function decodeGame(encoded) {
+async function decodeGame(encoded: string): Promise<Game> {
   const bytes = base64urlToBytes(encoded);
   const inflated = await inflateRaw(bytes);
   const json = bytesToUtf8(inflated);
-  return JSON.parse(json);
+  return JSON.parse(json) as Game;
 }
 
-function saveGameLocal(game) {
+function saveGameLocal(game: Game): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(game));
 }
 
-function loadGameLocal() {
+function loadGameLocal(): Game | null {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw);
+    return JSON.parse(raw) as Game;
   } catch {
     return null;
   }
 }
 
-async function syncHashFromGame(game, viewOverride) {
+async function syncHashFromGame(game: Game, viewOverride?: View): Promise<string> {
   const shareGame = { ...game, submissions: {} };
   const encoded = await encodeGame(shareGame);
   state.shareEncoded = encoded;
@@ -1102,17 +1159,17 @@ async function syncHashFromGame(game, viewOverride) {
   return encoded;
 }
 
-function showError(node, message) {
+function showError(node: HTMLElement, message: string): void {
   node.textContent = message;
   node.classList.remove("hidden");
 }
 
-function hideError(node) {
+function hideError(node: HTMLElement): void {
   node.textContent = "";
   node.classList.add("hidden");
 }
 
-function updateShareUrl(encoded) {
+function updateShareUrl(encoded: string): void {
   const base = location.href.split("#")[0];
   const params = new URLSearchParams();
   params.set("v", "player");
@@ -1120,8 +1177,7 @@ function updateShareUrl(encoded) {
   el.shareUrl.value = `${base}#${params.toString()}`;
 }
 
-async function updateDemoRevealLink() {
-  if (!el.demoRevealLink) return;
+async function updateDemoRevealLink(): Promise<void> {
   const base = location.href.split("#")[0];
   const params = new URLSearchParams();
   params.set("v", "reveal");
@@ -1130,7 +1186,7 @@ async function updateDemoRevealLink() {
   el.demoRevealLink.href = `${base}#${params.toString()}`;
 }
 
-function setView(view) {
+function setView(view: View): void {
   state.view = view;
   el.viewSetup.classList.toggle("hidden", view !== "setup");
   el.viewPlayer.classList.toggle("hidden", view !== "player");
@@ -1150,11 +1206,11 @@ function setView(view) {
   }
 }
 
-function ensureGame() {
+function ensureGame(): void {
   if (!state.game) state.game = emptyGame();
 }
 
-function ensureSettings() {
+function ensureSettings(): void {
   let changed = false;
   if (!state.game.settings) {
     state.game.settings = { scoring: "weighted", reveal: "rounds" };
@@ -1172,14 +1228,14 @@ function ensureSettings() {
   if (changed) saveGameLocal(state.game);
 }
 
-function getDefaultPresenterId(index) {
+function getDefaultPresenterId(index: number): string | null {
   const players = state.game.players;
   if (!players.length) return null;
   const presenter = players[index % players.length];
   return presenter ? presenter.id : null;
 }
 
-function ensurePresenter(question, index) {
+function ensurePresenter(question: Question, index: number): boolean {
   const players = state.game.players;
   if (!players.length) {
     question.presenterId = null;
@@ -1193,7 +1249,7 @@ function ensurePresenter(question, index) {
   return false;
 }
 
-function normalizePresenters() {
+function normalizePresenters(): void {
   let changed = false;
   state.game.questions.forEach((question, index) => {
     if (ensurePresenter(question, index)) changed = true;
@@ -1201,7 +1257,7 @@ function normalizePresenters() {
   if (changed) saveGameLocal(state.game);
 }
 
-function renderPlayersList() {
+function renderPlayersList(): void {
   el.playersList.innerHTML = "";
   state.game.players.forEach((player) => {
     const row = document.createElement("div");
@@ -1234,14 +1290,14 @@ function renderPlayersList() {
   });
 }
 
-function renderQuestionsList() {
+function renderQuestionsList(): void {
   el.questionsList.innerHTML = "";
   state.game.questions.forEach((question, index) => {
     const row = document.createElement("div");
     row.className = "list-row";
     const input = document.createElement("input");
     input.type = "text";
-    input.value = question.text;
+    input.value = getQuestionTextValue(question);
     input.addEventListener("input", () => {
       question.text = input.value;
       saveGameLocal(state.game);
@@ -1288,12 +1344,12 @@ function renderQuestionsList() {
   });
 }
 
-function addQuestionText(text) {
+function addQuestionText(text: string): void {
   if (state.game.finalizedAt) return;
   const normalized = text.trim();
   if (!normalized) return;
   const exists = state.game.questions.some(
-    (question) => question.text.trim().toLowerCase() === normalized.toLowerCase()
+    (question) => getQuestionTextValue(question).trim().toLowerCase() === normalized.toLowerCase()
   );
   if (exists) return;
   const index = state.game.questions.length;
@@ -1307,7 +1363,7 @@ function addQuestionText(text) {
   renderPlayerQuestion();
 }
 
-function addQuestionsFromIds(ids) {
+function addQuestionsFromIds(ids: string[]): void {
   ids.forEach((id) => {
     const question = questionBank.find((item) => item.id === id);
     if (!question) return;
@@ -1315,8 +1371,7 @@ function addQuestionsFromIds(ids) {
   });
 }
 
-function renderSuggestedQuestions() {
-  if (!el.suggestedQuestions) return;
+function renderSuggestedQuestions(): void {
   el.suggestedQuestions.innerHTML = "";
   topQuestionIds.forEach((id) => {
     const question = questionBank.find((item) => item.id === id);
@@ -1331,8 +1386,7 @@ function renderSuggestedQuestions() {
   });
 }
 
-function renderInspirationGroups() {
-  if (!el.inspirationGroups) return;
+function renderInspirationGroups(): void {
   el.inspirationGroups.innerHTML = "";
   const categories = Array.from(new Set(questionBank.map((question) => question.category)));
   categories.forEach((category) => {
@@ -1359,7 +1413,7 @@ function renderInspirationGroups() {
   });
 }
 
-function renderPlayerSelect() {
+function renderPlayerSelect(): void {
   el.playerSelect.innerHTML = "";
   const placeholder = document.createElement("option");
   placeholder.value = "";
@@ -1376,13 +1430,13 @@ function renderPlayerSelect() {
   }
 }
 
-function ensureRanking(questionId) {
+function ensureRanking(questionId: string): void {
   if (!state.playerForm.byQuestion[questionId]) {
     state.playerForm.byQuestion[questionId] = state.game.players.map((p) => p.id);
   }
 }
 
-function renderPlayerQuestion() {
+function renderPlayerQuestion(): void {
   const questions = state.game.questions;
   if (!questions.length) {
     el.playerProgress.textContent = "0 / 0";
@@ -1397,20 +1451,20 @@ function renderPlayerQuestion() {
   updatePlayerNav();
 }
 
-function renderPlayerStep() {
+function renderPlayerStep(): void {
   el.playerStepIdentity.classList.toggle("hidden", state.playerForm.step !== "identity");
   el.playerStepQuestions.classList.toggle("hidden", state.playerForm.step !== "questions");
   el.playerStepSubmit.classList.toggle("hidden", state.playerForm.step !== "submit");
 }
 
-function renderPlayerQuestions(count) {
+function renderPlayerQuestions(count: number): void {
   el.playerQuestions.innerHTML = "";
   state.game.questions.slice(0, count).forEach((question, index) => {
     ensureRanking(question.id);
     const card = document.createElement("div");
     card.className = "card";
     const title = document.createElement("h3");
-    title.textContent = `${index + 1}. ${question.text || t("labels.untitledQuestion")}`;
+    title.textContent = `${index + 1}. ${getQuestionTextValue(question) || t("labels.untitledQuestion")}`;
     const list = document.createElement("ul");
     list.className = "ranking-list";
     const ranking = state.playerForm.byQuestion[question.id];
@@ -1452,7 +1506,7 @@ function renderPlayerQuestions(count) {
   });
 }
 
-function updateRanking(questionId, playerId, delta) {
+function updateRanking(questionId: string, playerId: string, delta: number): void {
   const ranking = state.playerForm.byQuestion[questionId];
   const next = moveRanking(ranking, playerId, delta);
   if (next === ranking) return;
@@ -1461,16 +1515,16 @@ function updateRanking(questionId, playerId, delta) {
   refreshSubmissionLine();
 }
 
-function attachDragHandlers(li, questionId) {
-  li.addEventListener("dragstart", (event) => {
-    event.dataTransfer.setData("text/plain", li.dataset.playerId);
+function attachDragHandlers(li: HTMLLIElement, questionId: string): void {
+  li.addEventListener("dragstart", (event: DragEvent) => {
+    event.dataTransfer?.setData("text/plain", li.dataset.playerId ?? "");
   });
-  li.addEventListener("dragover", (event) => {
+  li.addEventListener("dragover", (event: DragEvent) => {
     event.preventDefault();
   });
-  li.addEventListener("drop", (event) => {
+  li.addEventListener("drop", (event: DragEvent) => {
     event.preventDefault();
-    const draggedId = event.dataTransfer.getData("text/plain");
+    const draggedId = event.dataTransfer?.getData("text/plain");
     const targetId = li.dataset.playerId;
     if (!draggedId || draggedId === targetId) return;
     const ranking = state.playerForm.byQuestion[questionId];
@@ -1483,7 +1537,7 @@ function attachDragHandlers(li, questionId) {
   });
 }
 
-function updatePlayerNav() {
+function updatePlayerNav(): void {
   const total = state.game.questions.length;
   const done = state.playerForm.visibleCount >= total;
   const canFinish = done && canExportSubmission();
@@ -1492,7 +1546,7 @@ function updatePlayerNav() {
   el.playerFinish.classList.toggle("hidden", !canFinish);
 }
 
-function canExportSubmission() {
+function canExportSubmission(): boolean {
   if (!state.playerForm.playerId) return false;
   const questionIds = state.game.questions.map((q) => q.id);
   return questionIds.every((id) => {
@@ -1501,17 +1555,21 @@ function canExportSubmission() {
   });
 }
 
-function createSubmission() {
+function createSubmission(): SubmissionPayload {
+  const playerId = state.playerForm.playerId;
+  if (!playerId) {
+    throw new Error("Cannot create submission without a player.");
+  }
   return {
     version: 1,
     gameId: state.game.gameId,
-    playerId: state.playerForm.playerId,
+    playerId,
     submittedAt: new Date().toISOString(),
     byQuestion: state.playerForm.byQuestion,
   };
 }
 
-async function refreshSubmissionLine() {
+async function refreshSubmissionLine(): Promise<void> {
   if (!canExportSubmission()) return;
   const submission = createSubmission();
   const player = state.game.players.find((p) => p.id === submission.playerId);
@@ -1521,19 +1579,19 @@ async function refreshSubmissionLine() {
   el.submissionLine.value = line;
 }
 
-async function encodePayload(obj) {
+async function encodePayload(obj: SubmissionPayload): Promise<string> {
   const json = JSON.stringify(obj);
   const compressed = await deflateRaw(utf8ToBytes(json));
   return bytesToBase64url(compressed);
 }
 
-async function decodePayload(payload) {
+async function decodePayload(payload: string): Promise<SubmissionPayload> {
   const bytes = base64urlToBytes(payload);
   const inflated = await inflateRaw(bytes);
-  return JSON.parse(bytesToUtf8(inflated));
+  return JSON.parse(bytesToUtf8(inflated)) as SubmissionPayload;
 }
 
-function renderSubmissionStatus() {
+function renderSubmissionStatus(): void {
   el.submissionStatus.innerHTML = "";
   state.game.players.forEach((player) => {
     const row = document.createElement("div");
@@ -1545,23 +1603,23 @@ function renderSubmissionStatus() {
   el.startReveal.disabled = !allSubmissionsIn();
 }
 
-function allSubmissionsIn() {
+function allSubmissionsIn(): boolean {
   return state.game.players.length > 0 && state.game.players.every((p) => state.game.submissions[p.id]);
 }
 
 // Scoring helpers live in game-logic.js
 
-function getScoringMode() {
+function getScoringMode(): NormalizedScoringMode {
   return normalizeScoring(state.game.settings?.scoring);
 }
 
-function setScoringMode(value) {
+function setScoringMode(value: string): void {
+  ensureSettings();
   state.game.settings = { ...state.game.settings, scoring: normalizeScoring(value) };
   saveGameLocal(state.game);
 }
 
-function renderScoringOptions() {
-  if (!el.scoringSimple || !el.scoringWeighted) return;
+function renderScoringOptions(): void {
   const scoringMode = getScoringMode();
   el.scoringSimple.checked = scoringMode === "simple";
   el.scoringWeighted.checked = scoringMode === "weighted";
@@ -1572,30 +1630,29 @@ function renderScoringOptions() {
 
 // Scoring helpers live in game-logic.js
 
-function getPresenterForQuestion(question, index) {
+function getPresenterForQuestion(question: Question, index: number): Player | null {
   ensurePresenter(question, index);
   return state.game.players.find((player) => player.id === question.presenterId) || null;
 }
 
-function getPresenterRanking(questionId, presenterId) {
+function getPresenterRanking(questionId: string, presenterId: string | null): string[] {
   if (!presenterId) return [];
   const submission = state.game.submissions[presenterId];
   if (!submission || !submission.byQuestion) return [];
   return submission.byQuestion[questionId] || [];
 }
 
-function getRevealGameTitle() {
+function getRevealGameTitle(): string {
   const rawTitle = state.game.title ? state.game.title.trim() : "";
   return rawTitle || t("reveal.defaultGameTitle");
 }
 
-function getRevealProgressLabel(totalQuestions) {
+function getRevealProgressLabel(totalQuestions: number): string {
   const current = totalQuestions ? Math.min(state.revealIndex + 1, totalQuestions) : 0;
   return t("reveal.progressLabel", { current, total: totalQuestions || 0 });
 }
 
-function renderRevealProgress(totalQuestions) {
-  if (!el.revealProgressText || !el.revealProgressFill || !el.revealProgressDots) return;
+function renderRevealProgress(totalQuestions: number): void {
   el.revealProgressText.textContent = getRevealProgressLabel(totalQuestions);
   const progress = totalQuestions ? Math.min((state.revealIndex + 1) / totalQuestions, 1) : 0;
   el.revealProgressFill.style.width = `${progress * 100}%`;
@@ -1614,7 +1671,14 @@ function getRevealNextLabel({
   revealPhase,
   revealStep,
   revealIndex,
-}) {
+}: {
+  presenterName: string;
+  maxSteps: number;
+  totalQuestions: number;
+  revealPhase: RevealPhase;
+  revealStep: number;
+  revealIndex: number;
+}): string {
   if (revealPhase === "prompt") {
     return revealIndex === 0 ? t("reveal.nextQuestionFirst") : t("reveal.nextQuestion");
   }
@@ -1644,7 +1708,10 @@ function getRevealNextLabel({
   return t("reveal.next");
 }
 
-function formatRoundScoreExplain(roundScores, presenterName) {
+function formatRoundScoreExplain(
+  roundScores: Record<string, number>,
+  presenterName: string,
+): string {
   const quips = roundScoreQuips[state.language] || roundScoreQuips.en;
   const sorted = sortScores(state.game, roundScores);
   const leaderName = sorted[0] ? sorted[0].player.name : presenterName;
@@ -1653,14 +1720,17 @@ function formatRoundScoreExplain(roundScores, presenterName) {
   return `${t("reveal.roundScoreIntro")} ${flavored}`.trim();
 }
 
-function buildScoreTimeline(scoringMode) {
-  const totals = {};
+function buildScoreTimeline(scoringMode: NormalizedScoringMode): {
+  series: Array<{ player: Player; points: number[] }>;
+  max: number;
+} {
+  const totals: Record<string, number> = {};
   state.game.players.forEach((player) => {
     totals[player.id] = 0;
   });
   const series = state.game.players.map((player) => ({
     player,
-    points: [],
+    points: [] as number[],
   }));
   state.game.questions.forEach((question) => {
     const round = scoreRound(state.game, question.id, scoringMode);
@@ -1676,7 +1746,7 @@ function buildScoreTimeline(scoringMode) {
   return { series, max };
 }
 
-function getWinnerIdsFromSeries(series) {
+function getWinnerIdsFromSeries(series: Array<{ player: Player; points: number[] }>): string[] {
   const totals = series.map((row) => ({
     playerId: row.player.id,
     points: row.points[row.points.length - 1] || 0,
@@ -1685,8 +1755,7 @@ function getWinnerIdsFromSeries(series) {
   return totals.filter((row) => row.points === max).map((row) => row.playerId);
 }
 
-function renderFinalPodium(scoringMode) {
-  if (!el.revealPodium) return;
+function renderFinalPodium(scoringMode: NormalizedScoringMode): void {
   el.revealPodium.innerHTML = "";
   if (!state.game.questions.length) return;
   const totals = scoreTotalsThrough(state.game, state.game.questions.length - 1, scoringMode);
@@ -1714,8 +1783,7 @@ function renderFinalPodium(scoringMode) {
   });
 }
 
-function renderScoreChart(scoringMode) {
-  if (!el.revealScoreChart || !el.revealScoreLegend) return;
+function renderScoreChart(scoringMode: NormalizedScoringMode): void {
   el.revealScoreChart.innerHTML = "";
   el.revealScoreLegend.innerHTML = "";
   const { series, max } = buildScoreTimeline(scoringMode);
@@ -1791,43 +1859,37 @@ function renderScoreChart(scoringMode) {
   el.revealScoreChart.appendChild(svg);
 }
 
-function renderReveal() {
-  const question = state.game.questions[state.revealIndex] || { text: t("labels.noQuestions") };
-  const questionText = question.text || t("labels.untitledQuestion");
+function renderReveal(): void {
+  const question = state.game.questions[state.revealIndex] || null;
+  const questionText = question
+    ? getQuestionTextValue(question) || t("labels.untitledQuestion")
+    : t("labels.noQuestions");
   el.revealQuestionText.textContent = questionText;
   const scoringMode = getScoringMode();
-  const consensusOrder = question.id ? buildConsensusRanking(state.game, question.id) : [];
-  const presenter = question.id ? getPresenterForQuestion(question, state.revealIndex) : null;
-  const presenterRanking = question.id
+  const consensusOrder = question ? buildConsensusRanking(state.game, question.id) : [];
+  const presenter = question ? getPresenterForQuestion(question, state.revealIndex) : null;
+  const presenterRanking = question
     ? getPresenterRanking(question.id, presenter ? presenter.id : null)
     : [];
   const presenterName = presenter ? presenter.name : t("labels.presenterTbd");
-  if (el.revealTitle && state.view === "reveal") {
+  if (state.view === "reveal") {
     const revealTitle = t("reveal.pageTitle", { game: getRevealGameTitle() });
     el.revealTitle.textContent = revealTitle;
     document.title = revealTitle;
   }
-  if (el.revealPromptTitle) {
-    el.revealPromptTitle.textContent = t("reveal.promptTitle", { presenter: presenterName });
-  }
-  if (el.revealPresenterLine) {
-    el.revealPresenterLine.textContent = t("reveal.promptLine", {
-      presenter: presenterName,
-    });
-  }
+  el.revealPromptTitle.textContent = t("reveal.promptTitle", { presenter: presenterName });
+  el.revealPresenterLine.textContent = t("reveal.promptLine", {
+    presenter: presenterName,
+  });
   el.revealPresenterLabel.textContent = presenterName;
-  if (el.revealRankingTitle) {
-    el.revealRankingTitle.textContent = questionText;
-  }
-  if (el.revealColumnPresenter) {
-    el.revealColumnPresenter.textContent = presenterName;
-  }
-  const roundScores = question.id ? scoreRound(state.game, question.id, scoringMode) : {};
+  el.revealRankingTitle.textContent = questionText;
+  el.revealColumnPresenter.textContent = presenterName;
+  const roundScores = question ? scoreRound(state.game, question.id, scoringMode) : {};
   const showTotals = state.revealIndex >= 1;
   const totalScores = showTotals
     ? scoreTotalsThrough(state.game, state.revealIndex, scoringMode)
     : {};
-  const maxSteps = getRevealMaxSteps(state.game, question.id);
+  const maxSteps = getRevealMaxSteps(state.game, question ? question.id : null);
   if (state.revealStep > maxSteps) state.revealStep = maxSteps;
   renderRevealList(consensusOrder, presenterRanking, state.revealStep);
   renderLeaderboard(el.roundLeaderboard, roundScores);
@@ -1849,37 +1911,35 @@ function renderReveal() {
   if (state.revealPhase === "end") {
     renderScoreChart(scoringMode);
     renderFinalPodium(scoringMode);
-  } else if (el.revealScoreChart && el.revealScoreLegend) {
+  } else {
     el.revealScoreChart.innerHTML = "";
     el.revealScoreLegend.innerHTML = "";
-    if (el.revealPodium) el.revealPodium.innerHTML = "";
+    el.revealPodium.innerHTML = "";
   }
   renderScoringOptions();
-  if (el.roundScoreExplain) {
-    el.roundScoreExplain.textContent = formatRoundScoreExplain(roundScores, presenterName);
-  }
-  if (el.totalScoreExplain) {
-    el.totalScoreExplain.textContent =
-      scoringMode === "simple" ? t("scoring.totalSimple") : t("scoring.totalWeighted");
-  }
+  el.roundScoreExplain.textContent = formatRoundScoreExplain(roundScores, presenterName);
+  el.totalScoreExplain.textContent =
+    scoringMode === "simple" ? t("scoring.totalSimple") : t("scoring.totalWeighted");
   el.revealPrev.disabled = state.revealIndex <= 0 && state.revealPhase === "prompt";
   el.revealNext.disabled =
     state.revealPhase === "end" ||
     (state.revealIndex >= state.game.questions.length - 1 && state.revealPhase === "totals");
-  if (el.revealNext) {
-    el.revealNext.textContent = getRevealNextLabel({
-      presenterName,
-      maxSteps,
-      totalQuestions: state.game.questions.length,
-      revealPhase: state.revealPhase,
-      revealStep: state.revealStep,
-      revealIndex: state.revealIndex,
-    });
-  }
+  el.revealNext.textContent = getRevealNextLabel({
+    presenterName,
+    maxSteps,
+    totalQuestions: state.game.questions.length,
+    revealPhase: state.revealPhase,
+    revealStep: state.revealStep,
+    revealIndex: state.revealIndex,
+  });
   renderRevealProgress(state.game.questions.length);
 }
 
-function renderRevealList(consensusOrder, presenterOrder, revealStep) {
+function renderRevealList(
+  consensusOrder: string[],
+  presenterOrder: Array<string | null>,
+  revealStep: number,
+): void {
   el.roundReveal.innerHTML = "";
   const total = consensusOrder.length;
   const activeStep =
@@ -1890,7 +1950,7 @@ function renderRevealList(consensusOrder, presenterOrder, revealStep) {
       : 0;
   consensusOrder.forEach((playerId, index) => {
     const place = index + 1;
-    const presenterId = presenterOrder[index];
+    const presenterId = presenterOrder[index] ?? null;
     const presenter = state.game.players.find((p) => p.id === presenterId);
     const consensus = state.game.players.find((p) => p.id === playerId);
     const presenterVisible = activeStep >= index * 2 + 1;
@@ -1934,7 +1994,7 @@ function renderRevealList(consensusOrder, presenterOrder, revealStep) {
   });
 }
 
-function renderLeaderboard(node, scoreMap) {
+function renderLeaderboard(node: HTMLElement, scoreMap: Record<string, number>): void {
   node.innerHTML = "";
   sortScores(state.game, scoreMap).forEach((row, index) => {
     const li = document.createElement("li");
@@ -1943,23 +2003,25 @@ function renderLeaderboard(node, scoreMap) {
   });
 }
 
-function validateSetup() {
+function validateSetup(): string | null {
   const names = state.game.players.map((p) => p.name.trim()).filter(Boolean);
   if (names.length < 2) return t("errors.addPlayers");
   if (new Set(names).size !== names.length) return t("errors.uniquePlayers");
-  const questions = state.game.questions.map((q) => q.text.trim()).filter(Boolean);
+  const questions = state.game.questions
+    .map((q) => getQuestionTextValue(q).trim())
+    .filter(Boolean);
   if (!questions.length) return t("errors.addQuestions");
   return null;
 }
 
-function handleSetupChange() {
+function handleSetupChange(): void {
   const error = validateSetup();
   if (error) showError(el.setupError, error);
   else hideError(el.setupError);
   saveGameLocal(state.game);
 }
 
-async function initFromHash() {
+async function initFromHash(): Promise<void> {
   const { view, g } = parseHash();
   if (g) {
     try {
@@ -1983,7 +2045,7 @@ async function initFromHash() {
   renderAll();
 }
 
-function renderAll() {
+function renderAll(): void {
   el.gameTitle.value = state.game.title || "";
   el.gameTitle.disabled = Boolean(state.game.finalizedAt);
   renderPlayersList();
@@ -1997,9 +2059,7 @@ function renderAll() {
   renderReveal();
   el.addPlayer.disabled = Boolean(state.game.finalizedAt);
   el.addQuestion.disabled = Boolean(state.game.finalizedAt);
-  if (el.addTopQuestions) {
-    el.addTopQuestions.disabled = Boolean(state.game.finalizedAt);
-  }
+  el.addTopQuestions.disabled = Boolean(state.game.finalizedAt);
   el.finalizeGame.disabled = Boolean(state.game.finalizedAt);
   el.finalizedPanel.classList.toggle("hidden", !state.game.finalizedAt);
   el.revealLinkPanel.classList.add("hidden");
@@ -2012,22 +2072,17 @@ function renderAll() {
 
 el.navSetup.addEventListener("click", () => setView("setup"));
 el.navHost.addEventListener("click", () => setView("host"));
-if (el.navInspiration) {
-  el.navInspiration.addEventListener("click", () => setView("inspiration"));
-}
-if (el.languageSelect) {
-  el.languageSelect.addEventListener("change", (event) => {
-    setLanguage(event.target.value);
-  });
-}
+el.navInspiration.addEventListener("click", () => setView("inspiration"));
+el.languageSelect.addEventListener("change", (event) => {
+  const target = event.target as HTMLSelectElement;
+  if (target.value in translations) {
+    setLanguage(target.value as Language);
+  }
+});
 
-if (el.addTopQuestions) {
-  el.addTopQuestions.addEventListener("click", () => addQuestionsFromIds(topQuestionIds));
-}
+el.addTopQuestions.addEventListener("click", () => addQuestionsFromIds(topQuestionIds));
 
-if (el.openInspiration) {
-  el.openInspiration.addEventListener("click", () => setView("inspiration"));
-}
+el.openInspiration.addEventListener("click", () => setView("inspiration"));
 
 el.gameTitle.addEventListener("input", () => {
   state.game.title = el.gameTitle.value;
@@ -2224,23 +2279,21 @@ el.revealSkipFullscreen.addEventListener("click", () => {
   renderReveal();
 });
 
-if (el.scoringSimple) {
-  el.scoringSimple.addEventListener("change", (event) => {
-    if (!event.target.checked) return;
-    setScoringMode(event.target.value);
-    renderAll();
-  });
-}
+el.scoringSimple.addEventListener("change", (event) => {
+  const target = event.target as HTMLInputElement;
+  if (!target.checked) return;
+  setScoringMode(target.value);
+  renderAll();
+});
 
-if (el.scoringWeighted) {
-  el.scoringWeighted.addEventListener("change", (event) => {
-    if (!event.target.checked) return;
-    setScoringMode(event.target.value);
-    renderAll();
-  });
-}
+el.scoringWeighted.addEventListener("change", (event) => {
+  const target = event.target as HTMLInputElement;
+  if (!target.checked) return;
+  setScoringMode(target.value);
+  renderAll();
+});
 
-async function generateRevealLink() {
+async function generateRevealLink(): Promise<string> {
   const base = location.href.split("#")[0];
   const params = new URLSearchParams();
   params.set("v", "reveal");
@@ -2251,18 +2304,17 @@ async function generateRevealLink() {
   return url;
 }
 
-async function encodeFullGame(game) {
+async function encodeFullGame(game: Game): Promise<string> {
   const json = JSON.stringify(game);
   const compressed = await deflateRaw(utf8ToBytes(json));
   return bytesToBase64url(compressed);
 }
 
-function renderQr(canvas, text) {
-  if (!canvas) return;
+function renderQr(canvas: HTMLCanvasElement, text: string): void {
   QRCode.toCanvas(canvas, text, { width: 220, margin: 1 }, () => {});
 }
 
-function currentRevealMaxSteps() {
+function currentRevealMaxSteps(): number {
   const question = state.game.questions[state.revealIndex];
   return question ? getRevealMaxSteps(state.game, question.id) : 0;
 }
