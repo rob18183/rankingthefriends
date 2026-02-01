@@ -915,8 +915,9 @@ const el = {
 };
 
 function createId(prefix) {
-  if (crypto && crypto.randomUUID) {
-    return `${prefix}_${crypto.randomUUID()}`;
+  const cryptoObj = typeof globalThis !== "undefined" ? globalThis.crypto : undefined;
+  if (cryptoObj && typeof cryptoObj.randomUUID === "function") {
+    return `${prefix}_${cryptoObj.randomUUID()}`;
   }
   return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
