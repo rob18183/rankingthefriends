@@ -16,6 +16,109 @@ import {
 const STORAGE_KEY = "ryf:game";
 const HASH_PREFIX = "g";
 const LANG_STORAGE_KEY = "ryf:lang";
+const DEMO_GAME = {
+  version: 1,
+  gameId: "game_demo_2024",
+  title: "Demo Game Night",
+  createdAt: "2024-08-20T19:00:00.000Z",
+  finalizedAt: "2024-08-20T19:30:00.000Z",
+  players: [
+    { id: "p_ava", name: "Ava" },
+    { id: "p_ben", name: "Ben" },
+    { id: "p_carla", name: "Carla" },
+    { id: "p_diego", name: "Diego" },
+    { id: "p_priya", name: "Priya" },
+    { id: "p_zoe", name: "Zoe" },
+  ],
+  questions: [
+    { id: "q1", text: "Most likely to start a dance party", presenterId: "p_ava" },
+    { id: "q2", text: "Best snack curator", presenterId: "p_ben" },
+    { id: "q3", text: "Most likely to survive a zombie apocalypse", presenterId: "p_carla" },
+    { id: "q4", text: "Worst at replying to group chats", presenterId: "p_diego" },
+    { id: "q5", text: "Secretly the biggest softie", presenterId: "p_priya" },
+  ],
+  submissions: {
+    p_ava: {
+      version: 1,
+      gameId: "game_demo_2024",
+      playerId: "p_ava",
+      submittedAt: "2024-08-20T19:35:00.000Z",
+      byQuestion: {
+        q1: ["p_zoe", "p_carla", "p_ben", "p_ava", "p_priya", "p_diego"],
+        q2: ["p_priya", "p_ava", "p_carla", "p_ben", "p_zoe", "p_diego"],
+        q3: ["p_diego", "p_priya", "p_ben", "p_carla", "p_zoe", "p_ava"],
+        q4: ["p_ben", "p_diego", "p_zoe", "p_carla", "p_ava", "p_priya"],
+        q5: ["p_carla", "p_priya", "p_ava", "p_zoe", "p_ben", "p_diego"],
+      },
+    },
+    p_ben: {
+      version: 1,
+      gameId: "game_demo_2024",
+      playerId: "p_ben",
+      submittedAt: "2024-08-20T19:36:00.000Z",
+      byQuestion: {
+        q1: ["p_carla", "p_zoe", "p_ben", "p_priya", "p_diego", "p_ava"],
+        q2: ["p_priya", "p_carla", "p_ben", "p_zoe", "p_ava", "p_diego"],
+        q3: ["p_diego", "p_ben", "p_priya", "p_carla", "p_zoe", "p_ava"],
+        q4: ["p_ben", "p_diego", "p_zoe", "p_carla", "p_priya", "p_ava"],
+        q5: ["p_carla", "p_priya", "p_zoe", "p_ava", "p_ben", "p_diego"],
+      },
+    },
+    p_carla: {
+      version: 1,
+      gameId: "game_demo_2024",
+      playerId: "p_carla",
+      submittedAt: "2024-08-20T19:37:00.000Z",
+      byQuestion: {
+        q1: ["p_zoe", "p_ben", "p_carla", "p_priya", "p_ava", "p_diego"],
+        q2: ["p_priya", "p_carla", "p_zoe", "p_ava", "p_ben", "p_diego"],
+        q3: ["p_diego", "p_priya", "p_carla", "p_ben", "p_zoe", "p_ava"],
+        q4: ["p_diego", "p_ben", "p_zoe", "p_carla", "p_priya", "p_ava"],
+        q5: ["p_carla", "p_priya", "p_zoe", "p_ava", "p_ben", "p_diego"],
+      },
+    },
+    p_diego: {
+      version: 1,
+      gameId: "game_demo_2024",
+      playerId: "p_diego",
+      submittedAt: "2024-08-20T19:38:00.000Z",
+      byQuestion: {
+        q1: ["p_zoe", "p_carla", "p_priya", "p_ben", "p_diego", "p_ava"],
+        q2: ["p_priya", "p_zoe", "p_carla", "p_ben", "p_ava", "p_diego"],
+        q3: ["p_diego", "p_priya", "p_ben", "p_carla", "p_zoe", "p_ava"],
+        q4: ["p_diego", "p_ben", "p_zoe", "p_priya", "p_carla", "p_ava"],
+        q5: ["p_priya", "p_carla", "p_zoe", "p_ava", "p_ben", "p_diego"],
+      },
+    },
+    p_priya: {
+      version: 1,
+      gameId: "game_demo_2024",
+      playerId: "p_priya",
+      submittedAt: "2024-08-20T19:39:00.000Z",
+      byQuestion: {
+        q1: ["p_carla", "p_zoe", "p_priya", "p_ben", "p_ava", "p_diego"],
+        q2: ["p_priya", "p_carla", "p_ava", "p_zoe", "p_ben", "p_diego"],
+        q3: ["p_priya", "p_diego", "p_ben", "p_carla", "p_zoe", "p_ava"],
+        q4: ["p_ben", "p_diego", "p_zoe", "p_carla", "p_priya", "p_ava"],
+        q5: ["p_priya", "p_carla", "p_zoe", "p_ava", "p_ben", "p_diego"],
+      },
+    },
+    p_zoe: {
+      version: 1,
+      gameId: "game_demo_2024",
+      playerId: "p_zoe",
+      submittedAt: "2024-08-20T19:40:00.000Z",
+      byQuestion: {
+        q1: ["p_zoe", "p_carla", "p_ben", "p_priya", "p_ava", "p_diego"],
+        q2: ["p_priya", "p_carla", "p_zoe", "p_ava", "p_ben", "p_diego"],
+        q3: ["p_diego", "p_priya", "p_ben", "p_zoe", "p_carla", "p_ava"],
+        q4: ["p_diego", "p_ben", "p_zoe", "p_priya", "p_carla", "p_ava"],
+        q5: ["p_carla", "p_priya", "p_zoe", "p_ava", "p_ben", "p_diego"],
+      },
+    },
+  },
+  settings: { scoring: "weighted", reveal: "rounds" },
+};
 
 const translations = {
   en: {
@@ -25,6 +128,12 @@ const translations = {
         "A playful party game: pick juicy questions, rank each other, and reveal the funniest results round by round.",
       intro:
         "No accounts, no logins. The host locks the game, players send a short secret code, and the host runs a big-screen style reveal.",
+    },
+    demo: {
+      title: "Try the demo reveal",
+      description:
+        "Jump into a filled-out game with six players and five questions to see the reveal flow end to end.",
+      cta: "Open demo reveal",
     },
     nav: {
       setup: "1. Setup",
@@ -190,6 +299,12 @@ const translations = {
         "Een speels partyspel: kies sappige vragen, rangschik elkaar en onthul de grappigste resultaten ronde na ronde.",
       intro:
         "Geen accounts, geen logins. De host vergrendelt het spel, spelers sturen een korte geheime code en de host toont de onthulling op groot scherm.",
+    },
+    demo: {
+      title: "Probeer de demo-reveal",
+      description:
+        "Duik in een ingevuld spel met zes spelers en vijf vragen om de reveal van begin tot eind te zien.",
+      cta: "Open demo-reveal",
     },
     nav: {
       setup: "1. Instellen",
@@ -726,6 +841,7 @@ const el = {
   viewReveal: document.getElementById("view-reveal"),
   viewInspiration: document.getElementById("view-inspiration"),
   gameTitle: document.getElementById("game-title"),
+  demoRevealLink: document.getElementById("demo-reveal-link"),
   playersList: document.getElementById("players-list"),
   addPlayer: document.getElementById("add-player"),
   questionsList: document.getElementById("questions-list"),
@@ -1001,6 +1117,16 @@ function updateShareUrl(encoded) {
   params.set("v", "player");
   params.set(HASH_PREFIX, encoded);
   el.shareUrl.value = `${base}#${params.toString()}`;
+}
+
+async function updateDemoRevealLink() {
+  if (!el.demoRevealLink) return;
+  const base = location.href.split("#")[0];
+  const params = new URLSearchParams();
+  params.set("v", "reveal");
+  const encoded = await encodeFullGame(DEMO_GAME);
+  params.set(HASH_PREFIX, encoded);
+  el.demoRevealLink.href = `${base}#${params.toString()}`;
 }
 
 function setView(view) {
@@ -2146,6 +2272,7 @@ window.addEventListener("hashchange", initFromHash);
   state.language = getInitialLanguage();
   renderLanguageOptions();
   applyTranslations();
+  await updateDemoRevealLink();
   ensureGame();
   await initFromHash();
 })();
