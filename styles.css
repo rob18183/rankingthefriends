@@ -87,6 +87,7 @@ h3 {
   box-shadow: 0 10px 20px rgba(124, 58, 237, 0.08);
   font-weight: 600;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  touch-action: manipulation;
 }
 
 .nav-btn.active {
@@ -98,6 +99,11 @@ h3 {
 .nav-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 12px 24px rgba(124, 58, 237, 0.16);
+}
+
+.nav-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 8px 18px rgba(124, 58, 237, 0.14);
 }
 
 .view {
@@ -166,6 +172,7 @@ h3 {
   font-weight: 600;
   box-shadow: 0 12px 22px rgba(124, 58, 237, 0.12);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  touch-action: manipulation;
 }
 
 .btn.primary {
@@ -176,6 +183,11 @@ h3 {
 .btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 16px 28px rgba(124, 58, 237, 0.18);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 20px rgba(124, 58, 237, 0.16);
 }
 
 .actions {
@@ -249,6 +261,13 @@ h3 {
   padding: 4px 8px;
   cursor: pointer;
   border-radius: 999px;
+  touch-action: manipulation;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.rank-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 6px 12px rgba(124, 58, 237, 0.16);
 }
 
 .progress {
@@ -626,11 +645,17 @@ h3 {
   font-size: 0.9rem;
   cursor: pointer;
   transition: transform 0.1s ease, box-shadow 0.2s ease;
+  touch-action: manipulation;
 }
 
 .pill:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+}
+
+.pill:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.12);
 }
 
 .stack {
