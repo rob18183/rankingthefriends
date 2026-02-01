@@ -12,7 +12,7 @@
 ### 3) Core game rules
 - Questions: any count (selected/entered by facilitator).
 - For each question, **every player ranks all players** (full ranking, no ties, no skips).
-- Scoring: **descending points** per ballot (N..1), summed across ballots.
+- Scoring: **simple** or **weighted**, based on how close each player's ranking is to the group consensus.
 - Reveal: **slideshow** per question (prompt → question → ranking → round score → totals).
 - Names are **select-only** (no free text) to avoid mismatches.
 
@@ -54,7 +54,7 @@
     "p1": { "byQuestion": { "q1": ["p3","p2","p1"] } }
   },
   "settings": {
-    "scoring": "descending",
+    "scoring": "simple",
     "reveal": "rounds"
   }
 }
@@ -75,18 +75,24 @@
 
 ### 7) Validation rules
 - Player must choose a **valid playerId** from the setup list.
-- Each question must be a **complete permutation** of all playerIds.
+- The player UI always starts with a full ranking list and only allows reordering, so each
+  question remains a complete list of playerIds when exported.
+- The app **does not re-validate ranking permutations** when importing codes.
 - Reject import if:
+  - line format is invalid.
   - `gameId` mismatch.
-  - `playerId` already submitted.
-  - Rankings are incomplete or contain duplicates.
+  - `playerId` mismatch or already submitted.
+  - payload cannot be decoded.
 - Show clear, blocking error messages (no conflict resolution workflow needed).
 
 ### 8) Scoring algorithm
 For a question with `N` players:
-1. Map each ranking list to points: position 1 -> N, position 2 -> N-1, ... last -> 1.
-2. Sum across all submissions for each player.
-3. Sort descending by points.
+1. Build a **consensus ranking** by averaging each player's rank position across all submissions
+   (lower average = higher consensus rank).
+2. **Weighted** scoring: for each submission, compute the total distance from consensus positions
+   and award `maxDistance - distance` points (clamped at 0).
+3. **Simple** scoring: for each submission, award 1 point for each player placed in the exact
+   same position as the consensus order.
 4. Tie handling: keep stable order by player name (documented).
 
 ### 9) Presentation / Reveal

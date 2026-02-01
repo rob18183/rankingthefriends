@@ -16,30 +16,32 @@
 - If hash > 16,000 chars: block save and show error.
 
 ### 3) Derived helpers
-#### 3.1 Points per rank (for consensus)
-```
-pointsForRank(rankIndex, totalPlayers) = totalPlayers - rankIndex
-// rankIndex is 0-based (0 => top rank)
-```
-
-#### 3.2 Build consensus ranking
+#### 3.1 Build consensus ranking (average position)
 Input: all submissions for that question  
-Output: map `{ playerId: points }` and a sorted order
+Output: sorted consensus order (lower average rank wins)
 ```
 for each submission:
   for i in 0..N-1:
-    consensusPoints[ranking[i]] += pointsForRank(i, N)
+    totalRankIndex[ranking[i]] += i
+    rankCounts[ranking[i]] += 1
 
-consensusOrder = players sorted by consensusPoints desc, then name asc
+consensusOrder = players sorted by (totalRankIndex / rankCounts) asc, then name asc
 ```
 
-#### 3.3 Score a single submission (guess score)
+#### 3.2 Score a single submission (weighted)
 Input: `ranking` (player ids ordered), `consensusOrder`  
 Output: `score` (higher is better)
 ```
 distance = sum(abs(rankIndex - consensusIndex)) for each player
 maxDistance = sum(abs(i - (N - 1 - i))) for i in 0..N-1
 score = max(0, maxDistance - distance)
+```
+
+#### 3.3 Score a single submission (simple)
+Input: `ranking` (player ids ordered), `consensusOrder`  
+Output: `score` (higher is better)
+```
+score = count of positions where ranking[i] === consensusOrder[i]
 ```
 
 #### 3.4 Score a round (question)
@@ -67,12 +69,12 @@ Output: `{ playerId: totalPoints }` across all questions
 - **Submission**:
   - `playerId` exists in setup.
   - `byQuestion` contains all `questionId` keys.
-  - Each ranking list is a **permutation** of all player ids.
-  - Reject duplicates or missing player ids.
+  - Player UI ensures each ranking list starts as a full list and is only reordered.
 - **Import**:
   - `gameId` must match.
   - `version` supported.
   - `playerId` not already submitted.
+  - Payload parsing errors surface as invalid payload (no additional ranking validation).
 
 ### 5) Reveal sequencing
 - Questions are revealed in the setup order.

@@ -148,7 +148,7 @@ export function advanceReveal(state, game) {
     next.revealPhase = "question";
   } else if (next.revealPhase === "question") {
     next.revealPhase = "reveal";
-    next.revealStep = 0;
+    next.revealStep = 1;
   } else if (next.revealPhase === "reveal") {
     if (next.revealStep < maxSteps) {
       next.revealStep += 1;
