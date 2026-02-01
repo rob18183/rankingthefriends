@@ -31,7 +31,7 @@ This project is configured for GitHub Pages via GitHub Actions. The production b
 2. In GitHub, set **Settings → Pages → Source** to **GitHub Actions**.
 3. The workflow builds the site and deploys the `dist/` folder.
 
-If you are temporarily serving the repository root as a static site, the QR code library is loaded from a CDN, so the app still works without a bundled `dist/` output.
+If you are temporarily serving the repository root as a static site, the TypeScript entrypoint will not load in the browser. Use `npm run dev` or serve the bundled `dist/` output from `npm run build` instead.
 
 ## Documentation
 - `docs/SPEC.md` – detailed product + flow spec
