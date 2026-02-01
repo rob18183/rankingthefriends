@@ -10,7 +10,7 @@ import {
   rewindReveal,
   scoreRound,
   scoreTotalsThrough,
-} from "../game-logic.js";
+} from "../game-logic.ts";
 
 const baseGame = () => ({
   players: [],

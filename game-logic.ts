@@ -1,12 +1,60 @@
-export function addPlayer(game, player) {
+export type ScoringMode = "simple" | "weighted" | "descending";
+
+export type NormalizedScoringMode = "simple" | "weighted";
+
+export type RevealPhase = "prompt" | "question" | "reveal" | "roundscore" | "totals" | "end";
+
+export type RevealState = {
+  revealPhase: RevealPhase;
+  revealIndex: number;
+  revealStep: number;
+};
+
+export type LocalizedText = Record<string, string>;
+
+export type Player = {
+  id: string;
+  name: string;
+};
+
+export type Question = {
+  id: string;
+  text: string | LocalizedText;
+  presenterId: string | null;
+  category?: string;
+};
+
+export type Submission = {
+  playerId: string;
+  byQuestion: Record<string, string[]>;
+};
+
+export type GameSettings = {
+  scoring: ScoringMode;
+  reveal?: "rounds";
+};
+
+export type Game = {
+  version?: number;
+  gameId?: string;
+  title?: string;
+  createdAt?: string;
+  finalizedAt?: string | null;
+  players: Player[];
+  questions: Question[];
+  submissions: Record<string, Submission>;
+  settings?: GameSettings;
+};
+
+export function addPlayer(game: Game, player: Player): Game {
   return { ...game, players: [...game.players, player] };
 }
 
-export function addQuestion(game, question) {
+export function addQuestion(game: Game, question: Question): Game {
   return { ...game, questions: [...game.questions, question] };
 }
 
-export function moveRanking(ranking, playerId, delta) {
+export function moveRanking(ranking: string[], playerId: string, delta: number): string[] {
   const from = ranking.indexOf(playerId);
   if (from === -1) return ranking;
   const to = Math.max(0, Math.min(ranking.length - 1, from + delta));
@@ -17,9 +65,9 @@ export function moveRanking(ranking, playerId, delta) {
   return next;
 }
 
-export function buildConsensusRanking(game, questionId) {
-  const totals = {};
-  const counts = {};
+export function buildConsensusRanking(game: Game, questionId: string): string[] {
+  const totals: Record<string, number> = {};
+  const counts: Record<string, number> = {};
   game.players.forEach((p) => {
     totals[p.id] = 0;
     counts[p.id] = 0;
@@ -46,7 +94,7 @@ export function buildConsensusRanking(game, questionId) {
   return ranked.map((row) => row.player.id);
 }
 
-export function maxRankDistance(playerCount) {
+export function maxRankDistance(playerCount: number): number {
   let total = 0;
   for (let i = 0; i < playerCount; i += 1) {
     total += Math.abs(i - (playerCount - 1 - i));
@@ -54,18 +102,18 @@ export function maxRankDistance(playerCount) {
   return total;
 }
 
-export function normalizeScoring(scoring) {
+export function normalizeScoring(scoring?: string | null): NormalizedScoringMode {
   if (scoring === "descending") return "weighted";
   if (scoring === "simple" || scoring === "weighted") return scoring;
   return "weighted";
 }
 
-export function scoreRoundWeighted(game, questionId) {
-  const totals = {};
+export function scoreRoundWeighted(game: Game, questionId: string): Record<string, number> {
+  const totals: Record<string, number> = {};
   game.players.forEach((p) => (totals[p.id] = 0));
   const consensusOrder = buildConsensusRanking(game, questionId);
   if (!consensusOrder.length) return totals;
-  const consensusPositions = new Map();
+  const consensusPositions = new Map<string, number>();
   consensusOrder.forEach((playerId, index) => {
     consensusPositions.set(playerId, index);
   });
@@ -83,12 +131,12 @@ export function scoreRoundWeighted(game, questionId) {
   return totals;
 }
 
-export function scoreRoundSimple(game, questionId) {
-  const totals = {};
+export function scoreRoundSimple(game: Game, questionId: string): Record<string, number> {
+  const totals: Record<string, number> = {};
   game.players.forEach((p) => (totals[p.id] = 0));
   const consensusOrder = buildConsensusRanking(game, questionId);
   if (!consensusOrder.length) return totals;
-  const consensusPositions = new Map();
+  const consensusPositions = new Map<string, number>();
   consensusOrder.forEach((playerId, index) => {
     consensusPositions.set(playerId, index);
   });
@@ -106,14 +154,18 @@ export function scoreRoundSimple(game, questionId) {
   return totals;
 }
 
-export function scoreRound(game, questionId, scoring) {
+export function scoreRound(game: Game, questionId: string, scoring?: string | null): Record<string, number> {
   const mode = normalizeScoring(scoring);
   if (mode === "simple") return scoreRoundSimple(game, questionId);
   return scoreRoundWeighted(game, questionId);
 }
 
-export function scoreTotalsThrough(game, questionIndex, scoring) {
-  const totals = {};
+export function scoreTotalsThrough(
+  game: Game,
+  questionIndex: number,
+  scoring?: string | null,
+): Record<string, number> {
+  const totals: Record<string, number> = {};
   game.players.forEach((p) => (totals[p.id] = 0));
   const lastIndex = Math.min(questionIndex, game.questions.length - 1);
   game.questions.slice(0, lastIndex + 1).forEach((question) => {
@@ -125,7 +177,10 @@ export function scoreTotalsThrough(game, questionIndex, scoring) {
   return totals;
 }
 
-export function sortScores(game, scoreMap) {
+export function sortScores(
+  game: Game,
+  scoreMap: Record<string, number>,
+): Array<{ player: Player; points: number }> {
   const rows = game.players.map((p) => ({ player: p, points: scoreMap[p.id] || 0 }));
   rows.sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
@@ -134,13 +189,13 @@ export function sortScores(game, scoreMap) {
   return rows;
 }
 
-export function getRevealMaxSteps(game, questionId) {
+export function getRevealMaxSteps(game: Game, questionId: string | null): number {
   if (!questionId) return 0;
   const consensusOrder = buildConsensusRanking(game, questionId);
   return consensusOrder.length * 2;
 }
 
-export function advanceReveal(state, game) {
+export function advanceReveal(state: RevealState, game: Game): RevealState {
   const next = { ...state };
   const question = game.questions[next.revealIndex];
   const maxSteps = question ? getRevealMaxSteps(game, question.id) : 0;
@@ -179,7 +234,7 @@ export function advanceReveal(state, game) {
   return next;
 }
 
-export function rewindReveal(state, game) {
+export function rewindReveal(state: RevealState, game: Game): RevealState {
   const next = { ...state };
   if (next.revealPhase === "prompt") {
     if (next.revealIndex > 0) {
