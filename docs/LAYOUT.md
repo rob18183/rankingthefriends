@@ -1,94 +1,36 @@
-## Ranking Your Friends - Low-Fidelity Layouts
+## Layout Reference (low-fidelity)
 
-### 1) Home / Setup (host)
+### Setup (host)
 ```
-[Header: Game title + subtitle]
-
-[Section: Game Title]
-  - Input: "Game title"
-
-[Section: Players]
-  - List of player name inputs
-  - Add player button
-  - Remove buttons per row
-
-[Section: Questions]
-  - List of question inputs
-  - Add question button
-  - Randomize order (optional)
-
-[Section: Lock]
-  - Lock game button (freezes setup)
-
-[Section: Share]
-  - Read-only share URL (with hash)
-  - Copy button
-
-[Primary CTA]
-  - "Go to collect codes"
+[Header: title + subtitle]
+[Game title input]
+[Players list + add button]
+[Questions list + add button]
+[Scoring mode selector]
+[Suggested questions + quick add]
+[Lock + share link panel]
 ```
 
-### 2) Player Flow
+### Player flow
 ```
-[Step 1: Identity]
-  - Name dropdown (required)
-  - Start button
-
-[Step 2: Questions]
-  - Progress indicator
-  - Stacked question cards
-  - Rank list (drag-and-drop + up/down)
-  - "Next question" button
-  - "Finish & get code" button (only at end)
-
-[Step 3: Submit]
-  - Thank you message
-  - Secret code field + copy button
-  - Instruction to send via WhatsApp/email
+[Select name]
+[Question stack with ranking controls]
+[Finish + secret code]
 ```
 
-### 3) Collect Codes
+### Collect codes (host)
 ```
-[Header: Game title + submissions summary (e.g. 7/10)]
-
-[Section: Paste]
-  - Multiline paste box (name:code per line)
-  - Error banner for invalid lines
-
-[Section: Submission Status]
-  - Checklist of players with submitted / pending
-
-[Primary CTA]
-  - "Generate game night link" (enabled when all submitted)
-
-[Secondary Actions]
-  - Back to setup
+[Paste codes]
+[Submission status list]
+[Generate reveal link + QR]
 ```
 
-### 4) Reveal / Presentation
+### Reveal
 ```
-[Full-screen layout]
-
-[Slide sequence]
-  - Presenter prompt
-  - Question (large)
-  - Ranking reveal (last → first)
-  - Round score
-  - Total score
-
-[Footer Controls]
-  - Back / Next
-```
-
-### 5) Final Screen (optional)
-```
-[Celebration header]
-  - Winner name + total points
-
-[Final Leaderboard]
-  - Full list + scores
-
-[Actions]
-  - Back to host dashboard
-  - Export results JSON
+[Fullscreen prompt]
+[Question + presenter]
+[Ranking reveal]
+[Round score]
+[Total score]
+[Finale]
 ```

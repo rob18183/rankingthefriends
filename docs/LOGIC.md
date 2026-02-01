@@ -1,90 +1,28 @@
-## Ranking Your Friends - Core Logic Spec
+## Core Logic Reference
 
-### 1) URL-hash encoding
-- **Goal**: store setup or full `GameState` in URL hash, compressed + base64url.
-- **Encode steps**:
-  1. `JSON.stringify(gameState)`
-  2. UTF-8 to bytes
-  3. `deflate-raw` (level default)
+### URL-hash encoding
+- The app stores game setup or the full game state in the URL hash.
+- Encode steps:
+  1. `JSON.stringify(game)`
+  2. UTF-8 → bytes
+  3. `deflate-raw` (when available)
   4. base64url encode
-  5. prefix with `#g=`
-- **Decode steps**: reverse the above; validate `version`.
-- **Backup**: store raw JSON in `localStorage["ryf:game"]`.
+- The encoded payload is stored under `#g=...` and backed up in localStorage.
 
-### 2) Size guardrails
-- Warn if hash length > 8,000 chars (suggest reducing questions/players).
-- If hash > 16,000 chars: block save and show error.
+### Consensus ranking
+- For each question, the consensus order is built from the **average position** across submissions.
+- Lower average position = higher consensus rank.
 
-### 3) Derived helpers
-#### 3.1 Build consensus ranking (average position)
-Input: all submissions for that question  
-Output: sorted consensus order (lower average rank wins)
-```
-for each submission:
-  for i in 0..N-1:
-    totalRankIndex[ranking[i]] += i
-    rankCounts[ranking[i]] += 1
+### Scoring
+- **Simple**: 1 point per exact match against the consensus positions.
+- **Weighted**: total distance from consensus order is subtracted from the maximum possible distance.
 
-consensusOrder = players sorted by (totalRankIndex / rankCounts) asc, then name asc
-```
+### Totals + sorting
+- Round scores are summed across questions.
+- Leaderboards are sorted by points (desc), then player name (asc) for stable ordering.
 
-#### 3.2 Score a single submission (weighted)
-Input: `ranking` (player ids ordered), `consensusOrder`  
-Output: `score` (higher is better)
-```
-distance = sum(abs(rankIndex - consensusIndex)) for each player
-maxDistance = sum(abs(i - (N - 1 - i))) for i in 0..N-1
-score = max(0, maxDistance - distance)
-```
-
-#### 3.3 Score a single submission (simple)
-Input: `ranking` (player ids ordered), `consensusOrder`  
-Output: `score` (higher is better)
-```
-score = count of positions where ranking[i] === consensusOrder[i]
-```
-
-#### 3.4 Score a round (question)
-Input: all submissions for that question  
-Output: `{ playerId: totalPoints }` where `playerId` is the submitter
-```
-for each submission:
-  totals[submission.playerId] += scoreSubmission(submission.ranking, consensusOrder)
-```
-
-#### 3.5 Overall totals
-Input: round scores  
-Output: `{ playerId: totalPoints }` across all questions
-
-#### 3.6 Ranking
-- Sort by `points desc`, then by `player.name asc` for stability.
-- Assign ranks sequentially (no shared ranks).
-
-### 4) Validation rules (logic)
-- **Setup**:
-  - `players.length >= 2`
-  - `questions.length >= 1`
-  - Player names unique, non-empty.
-  - Question text non-empty.
-- **Submission**:
-  - `playerId` exists in setup.
-  - `byQuestion` contains all `questionId` keys.
-  - Player UI ensures each ranking list starts as a full list and is only reordered.
-- **Import**:
-  - `gameId` must match.
-  - `version` supported.
-  - `playerId` not already submitted.
-  - Payload parsing errors surface as invalid payload (no additional ranking validation).
-
-### 5) Reveal sequencing
-- Questions are revealed in the setup order.
-- For each round:
-  1. Presenter prompt.
-  2. Question text.
-  3. Ranking reveal (last → first).
-  4. Round score.
-  5. Total score.
-
-### 6) Obfuscation (current)
-- Player codes are compressed and base64url-encoded.
-- This is best-effort privacy, not hard security.
+### Validation (current behavior)
+- Players and questions must be present before locking.
+- Player names must be unique.
+- Imported submissions are validated for format, gameId, and duplicate submissions.
+- The app assumes rankings are complete lists (enforced by the UI).

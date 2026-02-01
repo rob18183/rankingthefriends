@@ -5,51 +5,33 @@ A playful party game: pick juicy questions, rank each other, and reveal the funn
 ## How it works
 1. **Setup**: create a game with players and questions, then lock it.
 2. **Players**: open the link, rank everyone, and copy a short **secret code**.
-3. **Collect**: host pastes all codes and generates a **Game Night link + QR**.
-4. **Reveal**: open the Game Night link on the big screen for a fullscreen slideshow.
+3. **Collect**: host pastes codes and generates a **Game Night link + QR**.
+4. **Reveal**: open the Game Night link for a fullscreen slideshow.
 
-## Scoring
-- Each player assigns **N..1 points** per question (top rank gets N, last gets 1).
-- Points are **summed across all players**.
-- Reveal shows **Round score** and **Total score** after each question.
-
-## Development
-```
+## Quick start
+```bash
 npm install
 npm run dev
 ```
 
 ## Production build
-```
+```bash
 npm run build
 npm run preview
 ```
 
 ## GitHub Pages deployment
-This project is configured for GitHub Pages via GitHub Actions. The production build outputs to `dist/`, which is generated during CI and not committed to the repo. To publish:
+This app must be served from the **built output** (the `dist/` folder). The GitHub Actions workflow in
+`.github/workflows/deploy.yml` builds and deploys `dist/` automatically.
+
 1. Push to `main`.
 2. In GitHub, set **Settings → Pages → Source** to **GitHub Actions**.
-3. The workflow builds the site and deploys the `dist/` folder.
 
-If you are temporarily serving the repository root as a static site, the TypeScript entrypoint will not load in the browser. Use `npm run dev` or serve the bundled `dist/` output from `npm run build` instead.
+If you serve the repository root without building, the TypeScript entrypoint will not run in the
+browser and the UI will be non-interactive. Always deploy the compiled `dist/` output instead.
 
 ## Documentation
-- `docs/SPEC.md` – detailed product + flow spec
-- `docs/LOGIC.md` – scoring + encoding logic
-- `docs/WIREFLOW.md` – UI flow and steps
-- `docs/LAYOUT.md` – low‑fidelity layouts
-- `docs/COMPONENTS.md` – component responsibilities
-- `docs/CONCEPT.md` – high‑level concept summary
-- `docs/PROJECT_STRUCTURE.md` – repo layout guide
-- `docs/TESTING.md` – testing checklist
-- `docs/I18N.md` – multi-language support guide
-- `docs/TRANSITION_TO_TYPESCRIPT.md` – TypeScript migration plan and readiness review
-
-## Contributing
-See `CONTRIBUTING.md` for setup, workflow, and code style guidance.
-
-## Security
-Please review `SECURITY.md` for vulnerability reporting details.
+See `docs/README.md` for architecture, logic, and testing notes.
 
 ## Notes
 - No accounts or backend.
