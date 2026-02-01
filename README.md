@@ -23,6 +23,8 @@ npm run preview
 ## GitHub Pages deployment
 This app must be served from the **built output** (the `dist/` folder). The GitHub Actions workflow in
 `.github/workflows/deploy.yml` builds and deploys `dist/` automatically.
+The Vite config uses a relative base (`base: "./"`) so the build works correctly on GitHub Pages
+subpaths.
 
 1. Push to `main`.
 2. In GitHub, set **Settings → Pages → Source** to **GitHub Actions**.

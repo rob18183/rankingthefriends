@@ -64,6 +64,8 @@ const getEl = <T extends HTMLElement>(id: string) => document.getElementById(id)
 const STORAGE_KEY = "ryf:game";
 const HASH_PREFIX = "g";
 const LANG_STORAGE_KEY = "ryf:lang";
+const SHARE_WARN_LENGTH = 8000;
+const SHARE_MAX_LENGTH = 16000;
 const DEMO_GAME: Game = {
   version: 1,
   gameId: "game_demo_2024",
@@ -1120,6 +1122,29 @@ async function encodeGame(game: Game): Promise<string> {
   return bytesToBase64url(compressed);
 }
 
+async function getShareEncoded(game: Game): Promise<string> {
+  const shareGame = { ...game, submissions: {} };
+  return encodeGame(shareGame);
+}
+
+function getShareLengthStatus(encoded: string): "ok" | "warn" | "error" {
+  if (encoded.length > SHARE_MAX_LENGTH) return "error";
+  if (encoded.length > SHARE_WARN_LENGTH) return "warn";
+  return "ok";
+}
+
+function renderShareLengthStatus(status: "ok" | "warn" | "error"): void {
+  if (status === "error") {
+    showError(el.setupError, t("errors.shareTooLong"));
+    return;
+  }
+  if (status === "warn") {
+    showError(el.setupError, t("errors.shareLong"));
+    return;
+  }
+  hideError(el.setupError);
+}
+
 async function decodeGame(encoded: string): Promise<Game> {
   const bytes = base64urlToBytes(encoded);
   const inflated = await inflateRaw(bytes);
@@ -1142,18 +1167,14 @@ function loadGameLocal(): Game | null {
 }
 
 async function syncHashFromGame(game: Game, viewOverride?: View): Promise<string> {
-  const shareGame = { ...game, submissions: {} };
-  const encoded = await encodeGame(shareGame);
+  const encoded = await getShareEncoded(game);
   state.shareEncoded = encoded;
-  if (encoded.length > 16000) {
-    showError(el.setupError, t("errors.shareTooLong"));
+  const status = getShareLengthStatus(encoded);
+  if (status === "error") {
+    renderShareLengthStatus(status);
     return "";
   }
-  if (encoded.length > 8000) {
-    showError(el.setupError, t("errors.shareLong"));
-  } else {
-    hideError(el.setupError);
-  }
+  renderShareLengthStatus(status);
   if (viewOverride) setHash(viewOverride, encoded);
   updateShareUrl(encoded);
   return encoded;
@@ -1591,6 +1612,29 @@ async function decodePayload(payload: string): Promise<SubmissionPayload> {
   return JSON.parse(bytesToUtf8(inflated)) as SubmissionPayload;
 }
 
+function isValidRanking(ranking: unknown, playerIds: string[]): boolean {
+  if (!Array.isArray(ranking) || ranking.length !== playerIds.length) return false;
+  const playerSet = new Set(playerIds);
+  const seen = new Set<string>();
+  for (const entry of ranking) {
+    if (typeof entry !== "string" || !playerSet.has(entry) || seen.has(entry)) return false;
+    seen.add(entry);
+  }
+  return seen.size === playerIds.length;
+}
+
+function isValidSubmissionPayload(
+  submission: SubmissionPayload,
+  playerIds: string[],
+  questionIds: string[],
+): boolean {
+  if (!submission || typeof submission !== "object") return false;
+  if (!submission.byQuestion || typeof submission.byQuestion !== "object") return false;
+  return questionIds.every((questionId) =>
+    isValidRanking(submission.byQuestion[questionId], playerIds),
+  );
+}
+
 function renderSubmissionStatus(): void {
   el.submissionStatus.innerHTML = "";
   state.game.players.forEach((player) => {
@@ -2015,10 +2059,23 @@ function validateSetup(): string | null {
 }
 
 function handleSetupChange(): void {
-  const error = validateSetup();
-  if (error) showError(el.setupError, error);
-  else hideError(el.setupError);
+  void updateSetupWarnings();
   saveGameLocal(state.game);
+}
+
+async function updateSetupWarnings(): Promise<void> {
+  const error = validateSetup();
+  if (error) {
+    showError(el.setupError, error);
+    return;
+  }
+  if (state.game.finalizedAt) {
+    hideError(el.setupError);
+    return;
+  }
+  const encoded = await getShareEncoded(state.game);
+  state.shareEncoded = encoded;
+  renderShareLengthStatus(getShareLengthStatus(encoded));
 }
 
 async function initFromHash(): Promise<void> {
@@ -2114,6 +2171,11 @@ el.finalizeGame.addEventListener("click", async () => {
     showError(el.setupError, error);
     return;
   }
+  const encoded = await getShareEncoded(state.game);
+  const status = getShareLengthStatus(encoded);
+  state.shareEncoded = encoded;
+  renderShareLengthStatus(status);
+  if (status === "error") return;
   state.game.finalizedAt = new Date().toISOString();
   saveGameLocal(state.game);
   await syncHashFromGame(state.game, "setup");
@@ -2199,6 +2261,16 @@ el.importSubmit.addEventListener("click", async () => {
       }
       if (submission.playerId !== player.id) {
         showError(el.importError, t("errors.playerMismatch", { name }));
+        continue;
+      }
+      if (
+        !isValidSubmissionPayload(
+          submission,
+          state.game.players.map((entry) => entry.id),
+          state.game.questions.map((question) => question.id),
+        )
+      ) {
+        showError(el.importError, t("errors.invalidPayload", { name }));
         continue;
       }
       if (state.game.submissions[player.id]) {

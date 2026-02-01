@@ -7,6 +7,14 @@ Run the production build plus automated logic tests:
 npm run test
 ```
 
+## UI tests (Playwright)
+Run the Playwright UI smoke tests against a local Vite server:
+
+```
+npx playwright install chromium
+npx playwright test
+```
+
 ## Manual checklist
 Use this walkthrough after any UI or logic change.
 
