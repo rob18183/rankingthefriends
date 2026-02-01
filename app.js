@@ -113,9 +113,12 @@ const translations = {
       showFinale: "Show Finale",
       roundScoreIntro: "Let's see what the scores are for this round.",
       roundScore: "Round score",
-      totalScore: "Total score",
-      endTitle: "Finale!",
-      endIntro: "Here's how the leaderboard evolved across the night.",
+      totalScore: "Scoreboard showdown",
+      endTitle: "Grand finale!",
+      endIntro: "The story arc of the night—who surged when it mattered most.",
+      podiumTitle: "Podium time",
+      podiumIntro: "Top three take their bow.",
+      winnerTag: "Winner",
       back: "Back",
       next: "Next",
     },
@@ -158,8 +161,8 @@ const translations = {
       invalidPayload: "Invalid payload for {name}.",
     },
     scoring: {
-      totalSimple: "Running total with simple scoring (shown starting in round 2).",
-      totalWeighted: "Running total with weighted scoring (shown starting in round 2).",
+      totalSimple: "Cumulative brag points with simple scoring (starts in round 2).",
+      totalWeighted: "Cumulative brag points with weighted scoring (starts in round 2).",
     },
     language: {
       label: "Language",
@@ -276,9 +279,12 @@ const translations = {
       showFinale: "Toon finale",
       roundScoreIntro: "Laten we de scores voor deze ronde zien.",
       roundScore: "Rondescore",
-      totalScore: "Totaalscore",
-      endTitle: "Finale!",
-      endIntro: "Zo veranderde het klassement door de avond heen.",
+      totalScore: "Scorebord showdown",
+      endTitle: "Grote finale!",
+      endIntro: "Het verhaal van de avond—wie pakte de momenten die telden?",
+      podiumTitle: "Podium tijd",
+      podiumIntro: "De top drie pakt het podium.",
+      winnerTag: "Winnaar",
       back: "Terug",
       next: "Volgende",
     },
@@ -321,8 +327,8 @@ const translations = {
       invalidPayload: "Ongeldige payload voor {name}.",
     },
     scoring: {
-      totalSimple: "Totaalscore met simpele scoring (vanaf ronde 2).",
-      totalWeighted: "Totaalscore met gewogen scoring (vanaf ronde 2).",
+      totalSimple: "Cumulatieve brag points met simpele scoring (vanaf ronde 2).",
+      totalWeighted: "Cumulatieve brag points met gewogen scoring (vanaf ronde 2).",
     },
     language: {
       label: "Taal",
@@ -780,6 +786,7 @@ const el = {
   revealEndPanel: document.getElementById("reveal-end-panel"),
   revealScoreChart: document.getElementById("reveal-score-chart"),
   revealScoreLegend: document.getElementById("reveal-score-legend"),
+  revealPodium: document.getElementById("reveal-podium"),
   scoringSimple: document.getElementById("scoring-simple"),
   scoringWeighted: document.getElementById("scoring-weighted"),
   roundScoreExplain: document.getElementById("round-score-explain"),
@@ -1542,12 +1549,51 @@ function buildScoreTimeline(scoringMode) {
   return { series, max };
 }
 
+function getWinnerIdsFromSeries(series) {
+  const totals = series.map((row) => ({
+    playerId: row.player.id,
+    points: row.points[row.points.length - 1] || 0,
+  }));
+  const max = totals.reduce((currentMax, row) => Math.max(currentMax, row.points), 0);
+  return totals.filter((row) => row.points === max).map((row) => row.playerId);
+}
+
+function renderFinalPodium(scoringMode) {
+  if (!el.revealPodium) return;
+  el.revealPodium.innerHTML = "";
+  if (!state.game.questions.length) return;
+  const totals = scoreTotalsThrough(state.game, state.game.questions.length - 1, scoringMode);
+  const sorted = sortScores(state.game, totals);
+  if (!sorted.length) return;
+  const maxPoints = sorted[0].points;
+  sorted.slice(0, 3).forEach((row, index) => {
+    const li = document.createElement("li");
+    li.className = "podium-slot";
+    if (row.points === maxPoints) li.classList.add("winner");
+    li.classList.add(`podium-place-${index + 1}`);
+    const place = document.createElement("span");
+    place.className = "podium-place";
+    place.textContent = `${index + 1}`;
+    const name = document.createElement("span");
+    name.className = "podium-name";
+    name.textContent = row.player.name || t("labels.unnamed");
+    const points = document.createElement("span");
+    points.className = "podium-points";
+    points.textContent = `${row.points} pts`;
+    li.appendChild(place);
+    li.appendChild(name);
+    li.appendChild(points);
+    el.revealPodium.appendChild(li);
+  });
+}
+
 function renderScoreChart(scoringMode) {
   if (!el.revealScoreChart || !el.revealScoreLegend) return;
   el.revealScoreChart.innerHTML = "";
   el.revealScoreLegend.innerHTML = "";
   const { series, max } = buildScoreTimeline(scoringMode);
   if (!series.length) return;
+  const winnerIds = getWinnerIdsFromSeries(series);
   const rounds = state.game.questions.length;
   const width = 600;
   const height = 240;
@@ -1558,6 +1604,24 @@ function renderScoreChart(scoringMode) {
   svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
   svg.setAttribute("width", "100%");
   svg.setAttribute("height", "100%");
+  for (let i = 0; i <= 4; i += 1) {
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    const y = padding + (usableHeight * i) / 4;
+    line.setAttribute("x1", `${padding}`);
+    line.setAttribute("x2", `${width - padding}`);
+    line.setAttribute("y1", `${y}`);
+    line.setAttribute("y2", `${y}`);
+    line.setAttribute("class", "score-grid");
+    svg.appendChild(line);
+    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    const labelValue = Math.round(max - (max * i) / 4);
+    label.textContent = `${labelValue}`;
+    label.setAttribute("x", `${padding - 8}`);
+    label.setAttribute("y", `${y + 4}`);
+    label.setAttribute("class", "score-grid-label");
+    label.setAttribute("text-anchor", "end");
+    svg.appendChild(label);
+  }
   const colors = ["#7c3aed", "#ec4899", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444"];
   series.forEach((row, index) => {
     const points = row.points.map((value, pointIndex) => {
@@ -1578,12 +1642,23 @@ function renderScoreChart(scoringMode) {
     polyline.setAttribute("stroke-width", "3");
     polyline.setAttribute("stroke-linecap", "round");
     polyline.setAttribute("stroke-linejoin", "round");
+    polyline.setAttribute("class", "score-line");
+    if (winnerIds.includes(row.player.id)) {
+      polyline.classList.add("winner");
+    }
     svg.appendChild(polyline);
     const legendItem = document.createElement("span");
+    if (winnerIds.includes(row.player.id)) legendItem.classList.add("winner");
     const dot = document.createElement("i");
     dot.style.background = color;
     legendItem.appendChild(dot);
     legendItem.append(row.player.name);
+    if (winnerIds.includes(row.player.id)) {
+      const tag = document.createElement("em");
+      tag.className = "winner-tag";
+      tag.textContent = t("reveal.winnerTag");
+      legendItem.appendChild(tag);
+    }
     el.revealScoreLegend.appendChild(legendItem);
   });
   el.revealScoreChart.appendChild(svg);
@@ -1646,9 +1721,11 @@ function renderReveal() {
   el.revealEndPanel.classList.toggle("hidden", state.revealPhase !== "end");
   if (state.revealPhase === "end") {
     renderScoreChart(scoringMode);
+    renderFinalPodium(scoringMode);
   } else if (el.revealScoreChart && el.revealScoreLegend) {
     el.revealScoreChart.innerHTML = "";
     el.revealScoreLegend.innerHTML = "";
+    if (el.revealPodium) el.revealPodium.innerHTML = "";
   }
   renderScoringOptions();
   if (el.roundScoreExplain) {

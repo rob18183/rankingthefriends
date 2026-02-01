@@ -431,6 +431,32 @@ h3 {
   min-height: 240px;
 }
 
+.score-chart svg {
+  display: block;
+}
+
+.score-chart .score-grid {
+  stroke: rgba(124, 58, 237, 0.15);
+  stroke-dasharray: 4 6;
+  stroke-width: 1;
+}
+
+.score-chart .score-grid-label {
+  fill: var(--muted);
+  font-size: 10px;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.score-chart .score-line {
+  opacity: 0.7;
+}
+
+.score-chart .score-line.winner {
+  opacity: 1;
+  stroke-width: 5;
+  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.4));
+}
+
 .score-legend {
   display: flex;
   flex-wrap: wrap;
@@ -451,6 +477,74 @@ h3 {
   height: 14px;
   border-radius: 999px;
   display: inline-block;
+}
+
+.score-legend span.winner {
+  color: #5b21b6;
+  font-weight: 600;
+}
+
+.score-legend .winner-tag {
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(124, 58, 237, 0.12);
+  color: #5b21b6;
+  font-size: 0.75rem;
+  font-style: normal;
+  letter-spacing: 0.02em;
+}
+
+.reveal-podium {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(124, 58, 237, 0.12);
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.92), rgba(255, 244, 252, 0.85));
+}
+
+.reveal-podium-header h4 {
+  margin: 0 0 6px;
+}
+
+.podium-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.podium-slot {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(124, 58, 237, 0.15);
+  background: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  box-shadow: 0 12px 20px rgba(124, 58, 237, 0.08);
+}
+
+.podium-slot.winner {
+  border-color: rgba(124, 58, 237, 0.5);
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(236, 72, 153, 0.15));
+}
+
+.podium-place {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #5b21b6;
+}
+
+.podium-name {
+  font-weight: 600;
+}
+
+.podium-points {
+  font-size: 0.9rem;
+  color: var(--muted);
 }
 
 .reveal-stage {
