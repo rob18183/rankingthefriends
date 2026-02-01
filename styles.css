@@ -125,6 +125,14 @@ h3 {
   overflow: hidden;
 }
 
+.demo-card {
+  margin-top: 18px;
+}
+
+.demo-card .btn {
+  margin-top: 8px;
+}
+
 .field {
   display: flex;
   flex-direction: column;
