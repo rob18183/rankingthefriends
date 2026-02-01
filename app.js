@@ -37,6 +37,20 @@ const translations = {
         "Add players and questions. When you lock the game, the setup freezes and a share link is generated for your players.",
       gameTitle: "Game title",
       gameTitlePlaceholder: "Friday night rankings",
+      chooseScoring: "Choose scoring",
+      simpleTitle: "Simple (exact ranks)",
+      simpleDesc: "Score 1 point for every player placed in the exact position (e.g. John is fourth).",
+      simpleProsLabel: "Pros:",
+      simplePros: "easy to explain and highlights perfect hits.",
+      simpleConsLabel: "Cons:",
+      simpleCons: "near-misses get no credit.",
+      weightedTitle: "Weighted (distance-based)",
+      weightedDesc:
+        "Score more points when your ranking is closer to the group consensus and fewer points when you are far off.",
+      weightedProsLabel: "Pros:",
+      weightedPros: "rewards close guesses and keeps scores tight.",
+      weightedConsLabel: "Cons:",
+      weightedCons: "needs a quick explanation before playing.",
       players: "Players",
       questions: "Questions",
       suggestedTitle: "Suggested questions",
@@ -78,34 +92,30 @@ const translations = {
       openReveal: "Open reveal",
     },
     reveal: {
-      title: "Reveal",
+      pageTitle: "Ranking your Friend - {game}",
+      defaultGameTitle: "Game Night",
       readyTitle: "Ready to present?",
       readyHint: "Go fullscreen for the best vibe.",
       fullscreen: "Go fullscreen",
       skipFullscreen: "Continue without fullscreen",
-      chooseScoring: "Choose scoring",
-      simpleTitle: "Simple (exact ranks)",
-      simpleDesc:
-        "Score 1 point for every player placed in the exact position (e.g. John is fourth).",
-      simpleProsLabel: "Pros:",
-      simplePros: "easy to explain and highlights perfect hits.",
-      simpleConsLabel: "Cons:",
-      simpleCons: "near-misses get no credit.",
-      weightedTitle: "Weighted (distance-based)",
-      weightedDesc:
-        "Score more points when your ranking is closer to the group consensus and fewer points when you are far off.",
-      weightedProsLabel: "Pros:",
-      weightedPros: "rewards close guesses and keeps scores tight.",
-      weightedConsLabel: "Cons:",
-      weightedCons: "needs a quick explanation before playing.",
-      promptTitle: "Presenter, come forward",
+      promptTitle: "{presenter}, come forward",
       promptLine:
         "{presenter} kicks things off. Read the question out loud before the reveal begins.",
       questionLabel: "Question",
       presenterNote: "Presenter:",
-      presenterVsGroup: "Presenter vs group average",
+      progressLabel: "Question {current} of {total}",
+      nextQuestionFirst: "First Ranking Question",
+      nextQuestion: "Next Ranking Question",
+      nextPresenterReveal: "Reveal top {rank} {presenter}",
+      nextGroupReveal: "Reveal Group top {rank}",
+      showRoundScore: "Show Score",
+      showTotalScore: "Show Total Score",
+      showFinale: "Show Finale",
+      roundScoreIntro: "Let's see what the scores are for this round.",
       roundScore: "Round score",
       totalScore: "Total score",
+      endTitle: "Finale!",
+      endIntro: "Here's how the leaderboard evolved across the night.",
       back: "Back",
       next: "Next",
     },
@@ -128,6 +138,7 @@ const translations = {
       presenterTbd: "Presenter TBD",
       noQuestions: "No questions",
       presenter: "Presenter",
+      group: "Group",
       groupAvg: "Group avg",
       match: "Match",
       noMatch: "No match",
@@ -147,8 +158,6 @@ const translations = {
       invalidPayload: "Invalid payload for {name}.",
     },
     scoring: {
-      roundSimple: "Points this round: 1 point for each exact placement match.",
-      roundWeighted: "Points this round: more points for rankings closer to the group consensus.",
       totalSimple: "Running total with simple scoring (shown starting in round 2).",
       totalWeighted: "Running total with weighted scoring (shown starting in round 2).",
     },
@@ -190,6 +199,20 @@ const translations = {
         "Voeg spelers en vragen toe. Wanneer je het spel vergrendelt, wordt de setup bevroren en wordt er een deel-link voor spelers gemaakt.",
       gameTitle: "Speltitel",
       gameTitlePlaceholder: "Vrijdagavond ranglijst",
+      chooseScoring: "Kies scoring",
+      simpleTitle: "Simpel (exacte posities)",
+      simpleDesc: "Scoor 1 punt voor elke speler op de juiste plek (bijv. John is vierde).",
+      simpleProsLabel: "Voordelen:",
+      simplePros: "makkelijk uit te leggen en beloont perfecte hits.",
+      simpleConsLabel: "Nadelen:",
+      simpleCons: "bijna goed levert niks op.",
+      weightedTitle: "Gewogen (afstand)",
+      weightedDesc:
+        "Scoor meer punten wanneer je rangorde dichter bij de groepsconsensus zit en minder punten als je ernaast zit.",
+      weightedProsLabel: "Voordelen:",
+      weightedPros: "beloont bijna-goed en houdt scores spannend.",
+      weightedConsLabel: "Nadelen:",
+      weightedCons: "heeft een korte uitleg nodig.",
       players: "Spelers",
       questions: "Vragen",
       suggestedTitle: "Vragen ter inspiratie",
@@ -232,34 +255,30 @@ const translations = {
       openReveal: "Reveal openen",
     },
     reveal: {
-      title: "Reveal",
+      pageTitle: "Ranking your Friend - {game}",
+      defaultGameTitle: "Spelavond",
       readyTitle: "Klaar om te presenteren?",
       readyHint: "Ga fullscreen voor de beste vibe.",
       fullscreen: "Ga fullscreen",
       skipFullscreen: "Ga door zonder fullscreen",
-      chooseScoring: "Kies scoremethode",
-      simpleTitle: "Simpel (exacte posities)",
-      simpleDesc:
-        "Scoor 1 punt voor elke speler die je op de exacte positie zet (bijv. John is vierde).",
-      simpleProsLabel: "Voordelen:",
-      simplePros: "makkelijk uit te leggen en benadrukt perfecte hits.",
-      simpleConsLabel: "Nadelen:",
-      simpleCons: "bijna-goed levert geen punten op.",
-      weightedTitle: "Gewogen (afstand)",
-      weightedDesc:
-        "Scoor meer punten als je ranking dichter bij de groepsconsensus ligt en minder punten als je er ver naast zit.",
-      weightedProsLabel: "Voordelen:",
-      weightedPros: "beloont bijna-goed en houdt scores spannend.",
-      weightedConsLabel: "Nadelen:",
-      weightedCons: "heeft een korte uitleg nodig voordat je start.",
-      promptTitle: "Presentator, kom naar voren",
+      promptTitle: "{presenter}, kom naar voren",
       promptLine:
         "{presenter} trapt af. Lees de vraag hardop voordat de reveal begint.",
       questionLabel: "Vraag",
       presenterNote: "Presentator:",
-      presenterVsGroup: "Presentator vs groepsgemiddelde",
+      progressLabel: "Vraag {current} van {total}",
+      nextQuestionFirst: "Eerste rankingvraag",
+      nextQuestion: "Volgende rankingvraag",
+      nextPresenterReveal: "Onthul top {rank} van {presenter}",
+      nextGroupReveal: "Onthul groep top {rank}",
+      showRoundScore: "Toon score",
+      showTotalScore: "Toon totaalscore",
+      showFinale: "Toon finale",
+      roundScoreIntro: "Laten we de scores voor deze ronde zien.",
       roundScore: "Rondescore",
       totalScore: "Totaalscore",
+      endTitle: "Finale!",
+      endIntro: "Zo veranderde het klassement door de avond heen.",
       back: "Terug",
       next: "Volgende",
     },
@@ -282,6 +301,7 @@ const translations = {
       presenterTbd: "Presentator nog te bepalen",
       noQuestions: "Geen vragen",
       presenter: "Presentator",
+      group: "Groep",
       groupAvg: "Groepsgem.",
       match: "Match",
       noMatch: "Geen match",
@@ -301,8 +321,6 @@ const translations = {
       invalidPayload: "Ongeldige payload voor {name}.",
     },
     scoring: {
-      roundSimple: "Punten deze ronde: 1 punt voor elke exacte plaatsing.",
-      roundWeighted: "Punten deze ronde: meer punten als je ranking dichter bij de groep ligt.",
       totalSimple: "Totaalscore met simpele scoring (vanaf ronde 2).",
       totalWeighted: "Totaalscore met gewogen scoring (vanaf ronde 2).",
     },
@@ -325,6 +343,23 @@ const translations = {
       },
     },
   },
+};
+
+const roundScoreQuips = {
+  en: [
+    "{name} is taking the lead!",
+    "Did you see that? {name} is pulling ahead.",
+    "{name} really gave you an ass whooping.",
+    "{name}, are you really trying?",
+    "The crowd goes wild for {name}.",
+  ],
+  nl: [
+    "{name} pakt de leiding!",
+    "Zie je dat? {name} loopt uit.",
+    "{name} gaf jullie net een pak rammel.",
+    "{name}, doe je wel echt je best?",
+    "Het publiek gaat los voor {name}.",
+  ],
 };
 
 const questionBank = [
@@ -727,14 +762,24 @@ const el = {
   revealEnterFullscreen: document.getElementById("reveal-enter-fullscreen"),
   revealSkipFullscreen: document.getElementById("reveal-skip-fullscreen"),
   revealStage: document.getElementById("reveal-stage"),
+  revealTitle: document.getElementById("reveal-title"),
+  revealPromptTitle: document.getElementById("reveal-prompt-title"),
   revealPrompt: document.getElementById("reveal-prompt"),
   revealPresenterLine: document.getElementById("reveal-presenter-line"),
   revealPresenterLabel: document.getElementById("reveal-presenter-label"),
   revealQuestionPanel: document.getElementById("reveal-question-panel"),
   revealQuestionText: document.getElementById("reveal-question-text"),
   revealRankingPanel: document.getElementById("reveal-ranking-panel"),
+  revealRankingTitle: document.getElementById("reveal-ranking-title"),
+  revealColumnPresenter: document.getElementById("reveal-column-presenter"),
+  revealProgressText: document.getElementById("reveal-progress-text"),
+  revealProgressFill: document.getElementById("reveal-progress-fill"),
+  revealProgressDots: document.getElementById("reveal-progress-dots"),
   revealRoundScorePanel: document.getElementById("reveal-roundscore-panel"),
   revealTotalPanel: document.getElementById("reveal-total-panel"),
+  revealEndPanel: document.getElementById("reveal-end-panel"),
+  revealScoreChart: document.getElementById("reveal-score-chart"),
+  revealScoreLegend: document.getElementById("reveal-score-legend"),
   scoringSimple: document.getElementById("scoring-simple"),
   scoringWeighted: document.getElementById("scoring-weighted"),
   roundScoreExplain: document.getElementById("round-score-explain"),
@@ -965,6 +1010,9 @@ function setView(view) {
   el.navHost.classList.toggle("active", view === "host");
   if (el.navInspiration) {
     el.navInspiration.classList.toggle("active", view === "inspiration");
+  }
+  if (view !== "reveal") {
+    document.title = t("app.title");
   }
 }
 
@@ -1378,6 +1426,16 @@ function setScoringMode(value) {
   saveGameLocal(state.game);
 }
 
+function renderScoringOptions() {
+  if (!el.scoringSimple || !el.scoringWeighted) return;
+  const scoringMode = getScoringMode();
+  el.scoringSimple.checked = scoringMode === "simple";
+  el.scoringWeighted.checked = scoringMode === "weighted";
+  const disabled = Boolean(state.game.finalizedAt);
+  el.scoringSimple.disabled = disabled;
+  el.scoringWeighted.disabled = disabled;
+}
+
 // Scoring helpers live in game-logic.js
 
 function getPresenterForQuestion(question, index) {
@@ -1392,9 +1450,149 @@ function getPresenterRanking(questionId, presenterId) {
   return submission.byQuestion[questionId] || [];
 }
 
+function getRevealGameTitle() {
+  const rawTitle = state.game.title ? state.game.title.trim() : "";
+  return rawTitle || t("reveal.defaultGameTitle");
+}
+
+function getRevealProgressLabel(totalQuestions) {
+  const current = totalQuestions ? Math.min(state.revealIndex + 1, totalQuestions) : 0;
+  return t("reveal.progressLabel", { current, total: totalQuestions || 0 });
+}
+
+function renderRevealProgress(totalQuestions) {
+  if (!el.revealProgressText || !el.revealProgressFill || !el.revealProgressDots) return;
+  el.revealProgressText.textContent = getRevealProgressLabel(totalQuestions);
+  const progress = totalQuestions ? Math.min((state.revealIndex + 1) / totalQuestions, 1) : 0;
+  el.revealProgressFill.style.width = `${progress * 100}%`;
+  el.revealProgressDots.innerHTML = "";
+  for (let i = 0; i < totalQuestions; i += 1) {
+    const dot = document.createElement("span");
+    if (i <= state.revealIndex || state.revealPhase === "end") dot.classList.add("active");
+    el.revealProgressDots.appendChild(dot);
+  }
+}
+
+function getRevealNextLabel({
+  presenterName,
+  maxSteps,
+  totalQuestions,
+  revealPhase,
+  revealStep,
+  revealIndex,
+}) {
+  if (revealPhase === "prompt") {
+    return revealIndex === 0 ? t("reveal.nextQuestionFirst") : t("reveal.nextQuestion");
+  }
+  if (revealPhase === "question") {
+    return t("reveal.nextPresenterReveal", { rank: 1, presenter: presenterName });
+  }
+  if (revealPhase === "reveal") {
+    if (revealStep < maxSteps) {
+      const nextStep = revealStep + 1;
+      const rank = Math.ceil(nextStep / 2);
+      if (nextStep % 2 === 1) {
+        return t("reveal.nextPresenterReveal", { rank, presenter: presenterName });
+      }
+      return t("reveal.nextGroupReveal", { rank });
+    }
+    return t("reveal.showRoundScore");
+  }
+  if (revealPhase === "roundscore") {
+    if (revealIndex >= 1) return t("reveal.showTotalScore");
+    if (revealIndex < totalQuestions - 1) return t("reveal.nextQuestion");
+    return t("reveal.showFinale");
+  }
+  if (revealPhase === "totals") {
+    if (revealIndex < totalQuestions - 1) return t("reveal.nextQuestion");
+    return t("reveal.showFinale");
+  }
+  return t("reveal.next");
+}
+
+function formatRoundScoreExplain(roundScores, presenterName) {
+  const quips = roundScoreQuips[state.language] || roundScoreQuips.en;
+  const sorted = sortScores(state.game, roundScores);
+  const leaderName = sorted[0] ? sorted[0].player.name : presenterName;
+  const quip = quips[state.revealIndex % quips.length] || "";
+  const flavored = quip.replace("{name}", leaderName);
+  return `${t("reveal.roundScoreIntro")} ${flavored}`.trim();
+}
+
+function buildScoreTimeline(scoringMode) {
+  const totals = {};
+  state.game.players.forEach((player) => {
+    totals[player.id] = 0;
+  });
+  const series = state.game.players.map((player) => ({
+    player,
+    points: [],
+  }));
+  state.game.questions.forEach((question) => {
+    const round = scoreRound(state.game, question.id, scoringMode);
+    series.forEach((row) => {
+      totals[row.player.id] += round[row.player.id] || 0;
+      row.points.push(totals[row.player.id]);
+    });
+  });
+  const max = series.reduce((currentMax, row) => {
+    const rowMax = row.points.reduce((rowMaxValue, value) => Math.max(rowMaxValue, value), 0);
+    return Math.max(currentMax, rowMax);
+  }, 0);
+  return { series, max };
+}
+
+function renderScoreChart(scoringMode) {
+  if (!el.revealScoreChart || !el.revealScoreLegend) return;
+  el.revealScoreChart.innerHTML = "";
+  el.revealScoreLegend.innerHTML = "";
+  const { series, max } = buildScoreTimeline(scoringMode);
+  if (!series.length) return;
+  const rounds = state.game.questions.length;
+  const width = 600;
+  const height = 240;
+  const padding = 32;
+  const usableWidth = width - padding * 2;
+  const usableHeight = height - padding * 2;
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.setAttribute("width", "100%");
+  svg.setAttribute("height", "100%");
+  const colors = ["#7c3aed", "#ec4899", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444"];
+  series.forEach((row, index) => {
+    const points = row.points.map((value, pointIndex) => {
+      const x =
+        padding +
+        (rounds <= 1 ? 0 : (usableWidth * pointIndex) / (rounds - 1));
+      const y =
+        padding +
+        usableHeight -
+        (max ? (usableHeight * value) / max : 0);
+      return `${x},${y}`;
+    });
+    const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+    const color = colors[index % colors.length];
+    polyline.setAttribute("points", points.join(" "));
+    polyline.setAttribute("fill", "none");
+    polyline.setAttribute("stroke", color);
+    polyline.setAttribute("stroke-width", "3");
+    polyline.setAttribute("stroke-linecap", "round");
+    polyline.setAttribute("stroke-linejoin", "round");
+    svg.appendChild(polyline);
+    const legendItem = document.createElement("span");
+    const dot = document.createElement("i");
+    dot.style.background = color;
+    legendItem.appendChild(dot);
+    legendItem.append(row.player.name);
+    el.revealScoreLegend.appendChild(legendItem);
+  });
+  el.revealScoreChart.appendChild(svg);
+}
+
 function renderReveal() {
   const question = state.game.questions[state.revealIndex] || { text: t("labels.noQuestions") };
-  el.revealQuestionText.textContent = question.text || t("labels.untitledQuestion");
+  const questionText = question.text || t("labels.untitledQuestion");
+  el.revealQuestionText.textContent = questionText;
   const scoringMode = getScoringMode();
   const consensusOrder = question.id ? buildConsensusRanking(state.game, question.id) : [];
   const presenter = question.id ? getPresenterForQuestion(question, state.revealIndex) : null;
@@ -1402,12 +1600,26 @@ function renderReveal() {
     ? getPresenterRanking(question.id, presenter ? presenter.id : null)
     : [];
   const presenterName = presenter ? presenter.name : t("labels.presenterTbd");
+  if (el.revealTitle && state.view === "reveal") {
+    const revealTitle = t("reveal.pageTitle", { game: getRevealGameTitle() });
+    el.revealTitle.textContent = revealTitle;
+    document.title = revealTitle;
+  }
+  if (el.revealPromptTitle) {
+    el.revealPromptTitle.textContent = t("reveal.promptTitle", { presenter: presenterName });
+  }
   if (el.revealPresenterLine) {
     el.revealPresenterLine.textContent = t("reveal.promptLine", {
       presenter: presenterName,
     });
   }
   el.revealPresenterLabel.textContent = presenterName;
+  if (el.revealRankingTitle) {
+    el.revealRankingTitle.textContent = questionText;
+  }
+  if (el.revealColumnPresenter) {
+    el.revealColumnPresenter.textContent = presenterName;
+  }
   const roundScores = question.id ? scoreRound(state.game, question.id, scoringMode) : {};
   const showTotals = state.revealIndex >= 1;
   const totalScores = showTotals
@@ -1431,13 +1643,16 @@ function renderReveal() {
     "hidden",
     !showTotals || state.revealPhase !== "totals"
   );
-  if (el.scoringSimple && el.scoringWeighted) {
-    el.scoringSimple.checked = scoringMode === "simple";
-    el.scoringWeighted.checked = scoringMode === "weighted";
+  el.revealEndPanel.classList.toggle("hidden", state.revealPhase !== "end");
+  if (state.revealPhase === "end") {
+    renderScoreChart(scoringMode);
+  } else if (el.revealScoreChart && el.revealScoreLegend) {
+    el.revealScoreChart.innerHTML = "";
+    el.revealScoreLegend.innerHTML = "";
   }
+  renderScoringOptions();
   if (el.roundScoreExplain) {
-    el.roundScoreExplain.textContent =
-      scoringMode === "simple" ? t("scoring.roundSimple") : t("scoring.roundWeighted");
+    el.roundScoreExplain.textContent = formatRoundScoreExplain(roundScores, presenterName);
   }
   if (el.totalScoreExplain) {
     el.totalScoreExplain.textContent =
@@ -1445,7 +1660,19 @@ function renderReveal() {
   }
   el.revealPrev.disabled = state.revealIndex <= 0 && state.revealPhase === "prompt";
   el.revealNext.disabled =
-    state.revealIndex >= state.game.questions.length - 1 && state.revealPhase === "totals";
+    state.revealPhase === "end" ||
+    (state.revealIndex >= state.game.questions.length - 1 && state.revealPhase === "totals");
+  if (el.revealNext) {
+    el.revealNext.textContent = getRevealNextLabel({
+      presenterName,
+      maxSteps,
+      totalQuestions: state.game.questions.length,
+      revealPhase: state.revealPhase,
+      revealStep: state.revealStep,
+      revealIndex: state.revealIndex,
+    });
+  }
+  renderRevealProgress(state.game.questions.length);
 }
 
 function renderRevealList(consensusOrder, presenterOrder, revealStep) {
@@ -1471,36 +1698,22 @@ function renderRevealList(consensusOrder, presenterOrder, revealStep) {
     rank.textContent = `${place}.`;
     const picks = document.createElement("div");
     picks.className = "reveal-picks";
-    const presenterRow = document.createElement("div");
-    presenterRow.className = "reveal-pick";
-    const presenterLabel = document.createElement("span");
-    presenterLabel.className = "reveal-label";
-    presenterLabel.textContent = t("labels.presenter");
-    const presenterValue = document.createElement("span");
-    presenterValue.className = "reveal-value";
+    const presenterValue = document.createElement("div");
+    presenterValue.className = "reveal-pick";
     presenterValue.textContent = presenterVisible
       ? presenter
         ? presenter.name
         : t("labels.unknown")
       : "...";
-    presenterRow.appendChild(presenterLabel);
-    presenterRow.appendChild(presenterValue);
-    const groupRow = document.createElement("div");
-    groupRow.className = "reveal-pick";
-    const groupLabel = document.createElement("span");
-    groupLabel.className = "reveal-label";
-    groupLabel.textContent = t("labels.groupAvg");
-    const groupValue = document.createElement("span");
-    groupValue.className = "reveal-value";
+    const groupValue = document.createElement("div");
+    groupValue.className = "reveal-pick";
     groupValue.textContent = matchVisible
       ? consensus
         ? consensus.name
         : t("labels.unknown")
       : "...";
-    groupRow.appendChild(groupLabel);
-    groupRow.appendChild(groupValue);
-    picks.appendChild(presenterRow);
-    picks.appendChild(groupRow);
+    picks.appendChild(presenterValue);
+    picks.appendChild(groupValue);
     const badge = document.createElement("span");
     badge.className = "reveal-badge";
     if (matchVisible) {
@@ -1576,6 +1789,7 @@ function renderAll() {
   renderPlayerSelect();
   renderPlayerQuestion();
   renderSubmissionStatus();
+  renderScoringOptions();
   renderReveal();
   el.addPlayer.disabled = Boolean(state.game.finalizedAt);
   el.addQuestion.disabled = Boolean(state.game.finalizedAt);
@@ -1810,7 +2024,7 @@ if (el.scoringSimple) {
   el.scoringSimple.addEventListener("change", (event) => {
     if (!event.target.checked) return;
     setScoringMode(event.target.value);
-    renderReveal();
+    renderAll();
   });
 }
 
@@ -1818,7 +2032,7 @@ if (el.scoringWeighted) {
   el.scoringWeighted.addEventListener("change", (event) => {
     if (!event.target.checked) return;
     setScoringMode(event.target.value);
-    renderReveal();
+    renderAll();
   });
 }
 

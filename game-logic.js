@@ -148,7 +148,7 @@ export function advanceReveal(state, game) {
     next.revealPhase = "question";
   } else if (next.revealPhase === "question") {
     next.revealPhase = "reveal";
-    next.revealStep = 1;
+    next.revealStep = 0;
   } else if (next.revealPhase === "reveal") {
     if (next.revealStep < maxSteps) {
       next.revealStep += 1;
@@ -162,13 +162,19 @@ export function advanceReveal(state, game) {
       next.revealIndex += 1;
       next.revealPhase = "prompt";
       next.revealStep = 0;
+    } else {
+      next.revealPhase = "end";
     }
   } else if (next.revealPhase === "totals") {
     if (next.revealIndex < game.questions.length - 1) {
       next.revealIndex += 1;
       next.revealPhase = "prompt";
       next.revealStep = 0;
+    } else {
+      next.revealPhase = "end";
     }
+  } else if (next.revealPhase === "end") {
+    next.revealPhase = "end";
   }
   return next;
 }
@@ -185,7 +191,7 @@ export function rewindReveal(state, game) {
   } else if (next.revealPhase === "question") {
     next.revealPhase = "prompt";
   } else if (next.revealPhase === "reveal") {
-    if (next.revealStep > 1) {
+    if (next.revealStep > 0) {
       next.revealStep -= 1;
     } else {
       next.revealPhase = "question";
@@ -196,6 +202,8 @@ export function rewindReveal(state, game) {
     next.revealStep = currentQuestion ? getRevealMaxSteps(game, currentQuestion.id) : 0;
   } else if (next.revealPhase === "totals") {
     next.revealPhase = "roundscore";
+  } else if (next.revealPhase === "end") {
+    next.revealPhase = next.revealIndex >= 1 ? "totals" : "roundscore";
   }
   return next;
 }

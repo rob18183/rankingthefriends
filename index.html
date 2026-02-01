@@ -63,6 +63,64 @@
         </div>
 
         <div class="card">
+          <div class="reveal-scoring">
+            <h3 data-i18n="setup.chooseScoring">Choose scoring</h3>
+            <div class="scoring-options">
+              <label class="scoring-option" for="scoring-simple">
+                <input id="scoring-simple" type="radio" name="scoring" value="simple" />
+                <div>
+                  <span class="scoring-title" data-i18n="setup.simpleTitle">
+                    Simple (exact ranks)
+                  </span>
+                  <p class="muted" data-i18n="setup.simpleDesc">
+                    Score 1 point for every player placed in the exact position (e.g. John is
+                    fourth).
+                  </p>
+                  <ul class="scoring-proscons">
+                    <li>
+                      <strong data-i18n="setup.simpleProsLabel">Pros:</strong>
+                      <span data-i18n="setup.simplePros">
+                        easy to explain and highlights perfect hits.
+                      </span>
+                    </li>
+                    <li>
+                      <strong data-i18n="setup.simpleConsLabel">Cons:</strong>
+                      <span data-i18n="setup.simpleCons">near-misses get no credit.</span>
+                    </li>
+                  </ul>
+                </div>
+              </label>
+              <label class="scoring-option" for="scoring-weighted">
+                <input id="scoring-weighted" type="radio" name="scoring" value="weighted" />
+                <div>
+                  <span class="scoring-title" data-i18n="setup.weightedTitle">
+                    Weighted (distance-based)
+                  </span>
+                  <p class="muted" data-i18n="setup.weightedDesc">
+                    Score more points when your ranking is closer to the group consensus and fewer
+                    points when you are far off.
+                  </p>
+                  <ul class="scoring-proscons">
+                    <li>
+                      <strong data-i18n="setup.weightedProsLabel">Pros:</strong>
+                      <span data-i18n="setup.weightedPros">
+                        rewards close guesses and keeps scores tight.
+                      </span>
+                    </li>
+                    <li>
+                      <strong data-i18n="setup.weightedConsLabel">Cons:</strong>
+                      <span data-i18n="setup.weightedCons">
+                        needs a quick explanation before playing.
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
           <div class="card-header">
             <div>
               <h3 data-i18n="setup.suggestedTitle">Suggested questions</h3>
@@ -214,7 +272,7 @@
       </section>
 
       <section id="view-reveal" class="view hidden">
-        <h2 data-i18n="reveal.title">Reveal</h2>
+        <h2 id="reveal-title">Reveal</h2>
         <div id="reveal-fullscreen" class="card reveal-fullscreen">
           <h3 data-i18n="reveal.readyTitle">Ready to present?</h3>
           <p class="muted" data-i18n="reveal.readyHint">Go fullscreen for the best vibe.</p>
@@ -227,63 +285,17 @@
         </div>
 
         <div id="reveal-stage" class="card reveal-stage">
-          <div class="reveal-scoring">
-            <h3 data-i18n="reveal.chooseScoring">Choose scoring</h3>
-            <div class="scoring-options">
-              <label class="scoring-option" for="scoring-simple">
-                <input id="scoring-simple" type="radio" name="scoring" value="simple" />
-                <div>
-                  <span class="scoring-title" data-i18n="reveal.simpleTitle">
-                    Simple (exact ranks)
-                  </span>
-                  <p class="muted" data-i18n="reveal.simpleDesc">
-                    Score 1 point for every player placed in the exact position (e.g. John is
-                    fourth).
-                  </p>
-                  <ul class="scoring-proscons">
-                    <li>
-                      <strong data-i18n="reveal.simpleProsLabel">Pros:</strong>
-                      <span data-i18n="reveal.simplePros">
-                        easy to explain and highlights perfect hits.
-                      </span>
-                    </li>
-                    <li>
-                      <strong data-i18n="reveal.simpleConsLabel">Cons:</strong>
-                      <span data-i18n="reveal.simpleCons">near-misses get no credit.</span>
-                    </li>
-                  </ul>
-                </div>
-              </label>
-              <label class="scoring-option" for="scoring-weighted">
-                <input id="scoring-weighted" type="radio" name="scoring" value="weighted" />
-                <div>
-                  <span class="scoring-title" data-i18n="reveal.weightedTitle">
-                    Weighted (distance-based)
-                  </span>
-                  <p class="muted" data-i18n="reveal.weightedDesc">
-                    Score more points when your ranking is closer to the group consensus and fewer
-                    points when you are far off.
-                  </p>
-                  <ul class="scoring-proscons">
-                    <li>
-                      <strong data-i18n="reveal.weightedProsLabel">Pros:</strong>
-                      <span data-i18n="reveal.weightedPros">
-                        rewards close guesses and keeps scores tight.
-                      </span>
-                    </li>
-                    <li>
-                      <strong data-i18n="reveal.weightedConsLabel">Cons:</strong>
-                      <span data-i18n="reveal.weightedCons">
-                        needs a quick explanation before playing.
-                      </span>
-                    </li>
-                  </ul>
-                </div>
-              </label>
+          <div class="reveal-progress">
+            <div class="reveal-progress-top">
+              <span id="reveal-progress-text">Question 1 of 1</span>
             </div>
+            <div class="reveal-progress-bar">
+              <span id="reveal-progress-fill"></span>
+            </div>
+            <div id="reveal-progress-dots" class="reveal-progress-dots"></div>
           </div>
           <div id="reveal-prompt" class="reveal-prompt hidden">
-            <h3 data-i18n="reveal.promptTitle">Presenter, come forward</h3>
+            <h3 id="reveal-prompt-title">Presenter, come forward</h3>
             <p class="muted" id="reveal-presenter-line"></p>
           </div>
           <div id="reveal-question-panel" class="hidden">
@@ -295,9 +307,11 @@
             </p>
           </div>
           <div id="reveal-ranking-panel" class="hidden">
-            <h3 class="reveal-question" data-i18n="reveal.presenterVsGroup">
-              Presenter vs group average
-            </h3>
+            <h3 id="reveal-ranking-title" class="reveal-question">Presenter vs group average</h3>
+            <div class="reveal-columns">
+              <span id="reveal-column-presenter">Presenter</span>
+              <span data-i18n="labels.group">Group</span>
+            </div>
             <ol id="round-reveal" class="leaderboard presenter-reveal"></ol>
           </div>
           <div id="reveal-roundscore-panel" class="hidden">
@@ -310,9 +324,17 @@
             <p class="muted score-explain" id="total-score-explain"></p>
             <ol id="total-leaderboard" class="leaderboard"></ol>
           </div>
+          <div id="reveal-end-panel" class="hidden">
+            <h3 class="reveal-question" data-i18n="reveal.endTitle">Finale</h3>
+            <p class="muted" data-i18n="reveal.endIntro">
+              Here's how the leaderboard evolved across the night.
+            </p>
+            <div id="reveal-score-chart" class="score-chart"></div>
+            <div id="reveal-score-legend" class="score-legend"></div>
+          </div>
           <div class="actions">
             <button id="reveal-prev" class="btn" data-i18n="reveal.back">Back</button>
-            <button id="reveal-next" class="btn primary" data-i18n="reveal.next">Next</button>
+            <button id="reveal-next" class="btn primary">Next</button>
           </div>
         </div>
       </section>
