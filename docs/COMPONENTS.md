@@ -1,103 +1,20 @@
-## Ranking Your Friends - Component Props & State
+## UI Architecture Notes
 
-### 1) Types (shared)
-```
-Player = { id: string, name: string }
-Question = { id: string, text: string }
-Ranking = string[] // ordered list of player ids
+This project is a **single-page, DOM-driven** app rather than a component framework.
+The UI is organized around sections in `index.html` and rendered by helper functions in `app.ts`.
 
-Submission = {
-  gameId: string,
-  playerId: string,
-  byQuestion: Record<questionId, Ranking>
-}
+### Key sections
+- **Header + navigation**: app intro, language selector, and view buttons.
+- **Setup view**: players/questions editors, scoring selector, lock/share panel.
+- **Player view**: identity selection, ranking flow, and code export.
+- **Host view**: submission import, status list, reveal link + QR.
+- **Reveal view**: fullscreen prompt and slideshow steps.
+- **Inspiration view**: question categories with add-to-game actions.
 
-GameState = {
-  gameId: string,
-  title: string,
-  players: Player[],
-  questions: Question[],
-  submissions: Record<playerId, Submission>
-}
-```
+### State ownership (current)
+- `app.ts` owns a single `state` object with the game, view, language, and reveal state.
+- `game-logic.ts` exposes pure helpers for consensus ranking and scoring.
 
-### 2) Components
-#### GameTitleInput
-- Props: `title`, `onChange`
-- State: none
-
-#### PlayersEditor
-- Props: `players`, `onAdd`, `onRemove`, `onUpdateName`
-- State: none
-
-#### QuestionsEditor
-- Props: `questions`, `onAdd`, `onRemove`, `onUpdateText`
-- State: none
-
-#### ShareLinkBox
-- Props: `url`, `onCopy`, `onOpenPlayerView`
-- State: none
-
-#### PlayerSelect
-- Props: `players`, `selectedId`, `onSelect`
-- State: none
-
-#### PlayerStepRouter
-- Props: `step` ("identity" | "questions" | "submit"), `onStepChange`
-- State: none
-
-#### RankList
-- Props: `players`, `ranking`, `onChange`, `onMoveUp`, `onMoveDown`
-- State: internal drag state only
-
-#### QuestionCard
-- Props: `question`, `ranking`, `players`, `onRankingChange`
-- State: none
-
-#### ProgressTracker
-- Props: `currentIndex`, `total`, `completedCount`
-- State: none
-
-#### SecretCodeBox
-- Props: `code`, `onCopy`
-- State: none
-
-#### PasteCodesPanel
-- Props: `onImport`, `lastError`
-- State: none
-
-#### SubmissionStatusList
-- Props: `players`, `submittedIds`
-- State: none
-
-- Props: `question`, `phase`, `roundScores`, `totalScores`, `revealCount`
-- State: none
-
-#### LeaderboardTable
-- Props: `scores` (array of `{ playerId, points, rank }`)
-- State: none
-
-#### RevealControls
-- Props: `canPrev`, `canNext`, `onPrev`, `onNext`, `showTotals`, `onToggleTotals`
-- State: none
-
-#### FullscreenToggle
-- Props: `isFullscreen`, `onToggle`
-- State: none
-
-### 3) Screen-level state
-#### Setup Screen
-- Owns `GameState` (without submissions).
-- Writes URL-hash + localStorage on changes.
-
-#### Player Flow
-- Reads `GameState` from URL-hash.
-- Owns `SubmissionDraft` (playerId + byQuestion).
-
-#### Collect Codes
-- Reads `GameState` from URL-hash/localStorage.
-- Merges imported `Submission`s into `submissions`.
-
-#### Reveal Screen
-- Reads `GameState` + derived scores.
-- Owns current round index.
+### Why this matters
+- Treat DOM IDs as a public contract between `index.html` and `app.ts`.
+- Changes to IDs or view structure should be mirrored in `app.ts` render/update helpers.

@@ -7,26 +7,24 @@ Run the production build plus automated logic tests:
 npm run test
 ```
 
-## Agent development checklist (manual)
-Use this walkthrough after any UI or logic change. It is intentionally explicit so agents can follow
-the same repeatable flow every time.
+## Manual checklist
+Use this walkthrough after any UI or logic change.
 
 ### Setup & navigation
 1. Start the dev server and open the app.
 2. Confirm the nav buttons switch between Setup, Collect Codes, and Inspiration.
-3. Toggle the language selector between English and Nederlands and confirm every label updates.
+3. Toggle the language selector between English and Nederlands and confirm labels update.
 
 ### Setup flow
 1. Add at least 3 players.
-2. Add at least 2 questions (try 1 custom + 1 suggested question).
-3. Reorder players using drag-and-drop and verify the order updates.
-4. Lock the game and confirm the share link + game code appear.
-5. Refresh the page and confirm the game state persists (localStorage + hash).
+2. Add at least 2 questions (try one custom + one suggested question).
+3. Lock the game and confirm the share link + game code appear.
+4. Refresh and confirm the state persists (localStorage + hash).
 
 ### Player flow
 1. Open the Player view (via hash or nav).
 2. Select a player name and verify the Start button enables.
-3. Rank players for each question, using both drag-and-drop and the up/down controls.
+3. Rank players for each question using the up/down controls.
 4. Finish and copy the secret code; confirm the UI indicates the submission is ready.
 
 ### Host flow
@@ -36,9 +34,8 @@ the same repeatable flow every time.
 
 ### Reveal flow
 1. Open the reveal link and confirm the fullscreen prompt.
-2. Choose both scoring modes and verify the score explanation text updates.
-3. Step through at least one full question reveal (prompt → question → reveal → round score).
-4. Go back one step to ensure the Back button works.
+2. Step through a full question reveal (prompt → question → reveal → round score).
+3. Use Back to ensure navigation works.
 
 ### Regression checks
 - Verify the language selector still works after the game is locked.

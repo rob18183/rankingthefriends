@@ -2,16 +2,18 @@
 
 ```
 .
-├── app.js                # Client-side logic, state management, and translations
+├── app.ts                # Client-side UI logic, state, and translations
+├── game-logic.ts         # Scoring + reveal logic
 ├── index.html            # Single-page app markup
 ├── styles.css            # App styling
+├── tests/                # Logic + UI smoke tests
+├── docs/                 # Product + architecture documentation
 ├── package.json          # Scripts and dependencies
-├── docs/                 # Product, UI, and process documentation
-└── README.md             # Quick start and project overview
+└── README.md             # Project overview
 ```
 
 ## Key files
-- **app.js**: Main application logic and translation catalog (`translations`).
-- **index.html**: Template with `data-i18n` keys for translatable copy.
-- **styles.css**: Global styles for layout, cards, and reveal views.
-- **docs/**: Product and UX reference documents.
+- **app.ts**: Main application logic (rendering, state, i18n, hash encoding).
+- **game-logic.ts**: Consensus ranking, scoring, and reveal sequencing helpers.
+- **index.html**: DOM structure wired to `app.ts`.
+- **styles.css**: Global layout and component styling.
