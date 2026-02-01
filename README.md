@@ -43,6 +43,7 @@ If you are temporarily serving the repository root as a static site, the QR code
 - `docs/PROJECT_STRUCTURE.md` – repo layout guide
 - `docs/TESTING.md` – testing checklist
 - `docs/I18N.md` – multi-language support guide
+- `docs/TRANSITION_TO_TYPESCRIPT.md` – TypeScript migration plan and readiness review
 
 ## Contributing
 See `CONTRIBUTING.md` for setup, workflow, and code style guidance.
