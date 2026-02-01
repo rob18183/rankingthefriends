@@ -1,4 +1,17 @@
-import QRCode from "qrcode";
+import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/+esm";
+import {
+  addPlayer,
+  addQuestion,
+  advanceReveal,
+  buildConsensusRanking,
+  getRevealMaxSteps,
+  moveRanking,
+  normalizeScoring,
+  rewindReveal,
+  scoreRound,
+  scoreTotalsThrough,
+  sortScores,
+} from "./game-logic.js";
 
 const STORAGE_KEY = "ryf:game";
 const HASH_PREFIX = "g";
@@ -1102,7 +1115,7 @@ function addQuestionText(text) {
   );
   if (exists) return;
   const index = state.game.questions.length;
-  state.game.questions.push({
+  state.game = addQuestion(state.game, {
     id: createId("q"),
     text: normalized,
     presenterId: getDefaultPresenterId(index),
@@ -1236,13 +1249,13 @@ function renderPlayerQuestions(count) {
       up.type = "button";
       up.textContent = t("labels.up");
       up.disabled = position === 0 || state.playerForm.markedSubmitted;
-      up.addEventListener("click", () => moveRanking(question.id, playerId, -1));
+      up.addEventListener("click", () => updateRanking(question.id, playerId, -1));
       const down = document.createElement("button");
       down.className = "rank-btn";
       down.type = "button";
       down.textContent = t("labels.down");
       down.disabled = position === ranking.length - 1 || state.playerForm.markedSubmitted;
-      down.addEventListener("click", () => moveRanking(question.id, playerId, 1));
+      down.addEventListener("click", () => updateRanking(question.id, playerId, 1));
       controls.appendChild(up);
       controls.appendChild(down);
       li.appendChild(nameSpan);
@@ -1257,13 +1270,11 @@ function renderPlayerQuestions(count) {
   });
 }
 
-function moveRanking(questionId, playerId, delta) {
+function updateRanking(questionId, playerId, delta) {
   const ranking = state.playerForm.byQuestion[questionId];
-  const from = ranking.indexOf(playerId);
-  const to = Math.max(0, Math.min(ranking.length - 1, from + delta));
-  if (from === to) return;
-  ranking.splice(from, 1);
-  ranking.splice(to, 0, playerId);
+  const next = moveRanking(ranking, playerId, delta);
+  if (next === ranking) return;
+  state.playerForm.byQuestion[questionId] = next;
   renderPlayerQuestions(state.playerForm.visibleCount);
   refreshSubmissionLine();
 }
@@ -1356,48 +1367,7 @@ function allSubmissionsIn() {
   return state.game.players.length > 0 && state.game.players.every((p) => state.game.submissions[p.id]);
 }
 
-function buildConsensusRanking(questionId) {
-  const totals = {};
-  const counts = {};
-  state.game.players.forEach((p) => {
-    totals[p.id] = 0;
-    counts[p.id] = 0;
-  });
-  Object.values(state.game.submissions).forEach((submission) => {
-    const ranking = submission.byQuestion[questionId];
-    if (!ranking) return;
-    ranking.forEach((playerId, index) => {
-      totals[playerId] += index;
-      counts[playerId] += 1;
-    });
-  });
-  const ranked = state.game.players.map((player) => {
-    const count = counts[player.id] || 1;
-    return {
-      player,
-      average: totals[player.id] / count,
-    };
-  });
-  ranked.sort((a, b) => {
-    if (a.average !== b.average) return a.average - b.average;
-    return a.player.name.localeCompare(b.player.name);
-  });
-  return ranked.map((row) => row.player.id);
-}
-
-function maxRankDistance(playerCount) {
-  let total = 0;
-  for (let i = 0; i < playerCount; i += 1) {
-    total += Math.abs(i - (playerCount - 1 - i));
-  }
-  return total;
-}
-
-function normalizeScoring(scoring) {
-  if (scoring === "descending") return "weighted";
-  if (scoring === "simple" || scoring === "weighted") return scoring;
-  return "weighted";
-}
+// Scoring helpers live in game-logic.js
 
 function getScoringMode() {
   return normalizeScoring(state.game.settings?.scoring);
@@ -1408,79 +1378,7 @@ function setScoringMode(value) {
   saveGameLocal(state.game);
 }
 
-function scoreRoundWeighted(questionId) {
-  const totals = {};
-  state.game.players.forEach((p) => (totals[p.id] = 0));
-  const consensusOrder = buildConsensusRanking(questionId);
-  if (!consensusOrder.length) return totals;
-  const consensusPositions = new Map();
-  consensusOrder.forEach((playerId, index) => {
-    consensusPositions.set(playerId, index);
-  });
-  const maxDistance = maxRankDistance(state.game.players.length);
-  Object.values(state.game.submissions).forEach((submission) => {
-    const ranking = submission.byQuestion[questionId];
-    if (!ranking) return;
-    const distance = ranking.reduce((sum, playerId, index) => {
-      const consensusIndex = consensusPositions.get(playerId);
-      if (consensusIndex === undefined) return sum;
-      return sum + Math.abs(index - consensusIndex);
-    }, 0);
-    totals[submission.playerId] += Math.max(0, maxDistance - distance);
-  });
-  return totals;
-}
-
-function scoreRoundSimple(questionId) {
-  const totals = {};
-  state.game.players.forEach((p) => (totals[p.id] = 0));
-  const consensusOrder = buildConsensusRanking(questionId);
-  if (!consensusOrder.length) return totals;
-  const consensusPositions = new Map();
-  consensusOrder.forEach((playerId, index) => {
-    consensusPositions.set(playerId, index);
-  });
-  Object.values(state.game.submissions).forEach((submission) => {
-    const ranking = submission.byQuestion[questionId];
-    if (!ranking) return;
-    ranking.forEach((playerId, index) => {
-      const consensusIndex = consensusPositions.get(playerId);
-      if (consensusIndex === undefined) return;
-      if (consensusIndex === index) {
-        totals[submission.playerId] += 1;
-      }
-    });
-  });
-  return totals;
-}
-
-function scoreRound(questionId, scoring) {
-  const mode = normalizeScoring(scoring);
-  if (mode === "simple") return scoreRoundSimple(questionId);
-  return scoreRoundWeighted(questionId);
-}
-
-function scoreTotalsThrough(questionIndex, scoring) {
-  const totals = {};
-  state.game.players.forEach((p) => (totals[p.id] = 0));
-  const lastIndex = Math.min(questionIndex, state.game.questions.length - 1);
-  state.game.questions.slice(0, lastIndex + 1).forEach((question) => {
-    const round = scoreRound(question.id, scoring);
-    Object.entries(round).forEach(([playerId, points]) => {
-      totals[playerId] += points;
-    });
-  });
-  return totals;
-}
-
-function sortScores(scoreMap) {
-  const rows = state.game.players.map((p) => ({ player: p, points: scoreMap[p.id] || 0 }));
-  rows.sort((a, b) => {
-    if (b.points !== a.points) return b.points - a.points;
-    return a.player.name.localeCompare(b.player.name);
-  });
-  return rows;
-}
+// Scoring helpers live in game-logic.js
 
 function getPresenterForQuestion(question, index) {
   ensurePresenter(question, index);
@@ -1494,17 +1392,11 @@ function getPresenterRanking(questionId, presenterId) {
   return submission.byQuestion[questionId] || [];
 }
 
-function getRevealMaxSteps(questionId) {
-  if (!questionId) return 0;
-  const consensusOrder = buildConsensusRanking(questionId);
-  return consensusOrder.length * 2;
-}
-
 function renderReveal() {
   const question = state.game.questions[state.revealIndex] || { text: t("labels.noQuestions") };
   el.revealQuestionText.textContent = question.text || t("labels.untitledQuestion");
   const scoringMode = getScoringMode();
-  const consensusOrder = question.id ? buildConsensusRanking(question.id) : [];
+  const consensusOrder = question.id ? buildConsensusRanking(state.game, question.id) : [];
   const presenter = question.id ? getPresenterForQuestion(question, state.revealIndex) : null;
   const presenterRanking = question.id
     ? getPresenterRanking(question.id, presenter ? presenter.id : null)
@@ -1516,10 +1408,12 @@ function renderReveal() {
     });
   }
   el.revealPresenterLabel.textContent = presenterName;
-  const roundScores = question.id ? scoreRound(question.id, scoringMode) : {};
+  const roundScores = question.id ? scoreRound(state.game, question.id, scoringMode) : {};
   const showTotals = state.revealIndex >= 1;
-  const totalScores = showTotals ? scoreTotalsThrough(state.revealIndex, scoringMode) : {};
-  const maxSteps = getRevealMaxSteps(question.id);
+  const totalScores = showTotals
+    ? scoreTotalsThrough(state.game, state.revealIndex, scoringMode)
+    : {};
+  const maxSteps = getRevealMaxSteps(state.game, question.id);
   if (state.revealStep > maxSteps) state.revealStep = maxSteps;
   renderRevealList(consensusOrder, presenterRanking, state.revealStep);
   renderLeaderboard(el.roundLeaderboard, roundScores);
@@ -1625,7 +1519,7 @@ function renderRevealList(consensusOrder, presenterOrder, revealStep) {
 
 function renderLeaderboard(node, scoreMap) {
   node.innerHTML = "";
-  sortScores(scoreMap).forEach((row, index) => {
+  sortScores(state.game, scoreMap).forEach((row, index) => {
     const li = document.createElement("li");
     li.textContent = `${index + 1}. ${row.player.name} (${row.points})`;
     node.appendChild(li);
@@ -1723,7 +1617,7 @@ el.gameTitle.addEventListener("input", () => {
 });
 
 el.addPlayer.addEventListener("click", () => {
-  state.game.players.push({ id: createId("p"), name: "" });
+  state.game = addPlayer(state.game, { id: createId("p"), name: "" });
   handleSetupChange();
   renderPlayersList();
   renderPlayerSelect();
@@ -1731,7 +1625,7 @@ el.addPlayer.addEventListener("click", () => {
 
 el.addQuestion.addEventListener("click", () => {
   const index = state.game.questions.length;
-  state.game.questions.push({
+  state.game = addQuestion(state.game, {
     id: createId("q"),
     text: "",
     presenterId: getDefaultPresenterId(index),
@@ -1867,58 +1761,33 @@ el.openReveal.addEventListener("click", () => {
 
 el.revealPrev.addEventListener("click", () => {
   if (!state.revealFullscreenReady) return;
-  if (state.revealPhase === "prompt") {
-    if (state.revealIndex > 0) {
-      state.revealIndex -= 1;
-      state.revealPhase = state.revealIndex >= 1 ? "totals" : "roundscore";
-      state.revealStep = currentRevealMaxSteps();
-    }
-  } else if (state.revealPhase === "question") {
-    state.revealPhase = "prompt";
-  } else if (state.revealPhase === "reveal") {
-    if (state.revealStep > 1) {
-      state.revealStep -= 1;
-    } else {
-      state.revealPhase = "question";
-    }
-  } else if (state.revealPhase === "roundscore") {
-    state.revealPhase = "reveal";
-    state.revealStep = currentRevealMaxSteps();
-  } else if (state.revealPhase === "totals") {
-    state.revealPhase = "roundscore";
-  }
+  const next = rewindReveal(
+    {
+      revealPhase: state.revealPhase,
+      revealIndex: state.revealIndex,
+      revealStep: state.revealStep,
+    },
+    state.game
+  );
+  state.revealPhase = next.revealPhase;
+  state.revealIndex = next.revealIndex;
+  state.revealStep = next.revealStep;
   renderReveal();
 });
 
 el.revealNext.addEventListener("click", () => {
   if (!state.revealFullscreenReady) return;
-  const maxSteps = currentRevealMaxSteps();
-  if (state.revealPhase === "prompt") {
-    state.revealPhase = "question";
-  } else if (state.revealPhase === "question") {
-    state.revealPhase = "reveal";
-    state.revealStep = 1;
-  } else if (state.revealPhase === "reveal") {
-    if (state.revealStep < maxSteps) {
-      state.revealStep += 1;
-    } else {
-      state.revealPhase = "roundscore";
-    }
-  } else if (state.revealPhase === "roundscore") {
-    if (state.revealIndex >= 1) {
-      state.revealPhase = "totals";
-    } else if (state.revealIndex < state.game.questions.length - 1) {
-      state.revealIndex += 1;
-      state.revealPhase = "prompt";
-      state.revealStep = 0;
-    }
-  } else if (state.revealPhase === "totals") {
-    if (state.revealIndex < state.game.questions.length - 1) {
-      state.revealIndex += 1;
-      state.revealPhase = "prompt";
-      state.revealStep = 0;
-    }
-  }
+  const next = advanceReveal(
+    {
+      revealPhase: state.revealPhase,
+      revealIndex: state.revealIndex,
+      revealStep: state.revealStep,
+    },
+    state.game
+  );
+  state.revealPhase = next.revealPhase;
+  state.revealIndex = next.revealIndex;
+  state.revealStep = next.revealStep;
   renderReveal();
 });
 
@@ -1977,7 +1846,7 @@ function renderQr(canvas, text) {
 
 function currentRevealMaxSteps() {
   const question = state.game.questions[state.revealIndex];
-  return question ? getRevealMaxSteps(question.id) : 0;
+  return question ? getRevealMaxSteps(state.game, question.id) : 0;
 }
 
 window.addEventListener("hashchange", initFromHash);
