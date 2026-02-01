@@ -1,4 +1,22 @@
-import QRCode from "qrcode";
+type QRCodeModule = typeof import("qrcode");
+
+let qrCodeModulePromise: Promise<QRCodeModule> | null = null;
+
+async function loadQrCodeModule(): Promise<QRCodeModule> {
+  try {
+    return await import("qrcode");
+  } catch (error) {
+    console.warn("Falling back to CDN QR code module.", error);
+    return await import(/* @vite-ignore */ "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/+esm");
+  }
+}
+
+function getQrCodeModule(): Promise<QRCodeModule> {
+  if (!qrCodeModulePromise) {
+    qrCodeModulePromise = loadQrCodeModule();
+  }
+  return qrCodeModulePromise;
+}
 import {
   addPlayer,
   addQuestion,
@@ -2219,7 +2237,7 @@ el.startReveal.addEventListener("click", async () => {
   const revealLink = await generateRevealLink();
   if (!revealLink) return;
   el.revealLinkPanel.classList.remove("hidden");
-  renderQr(el.revealQr, revealLink);
+  await renderQr(el.revealQr, revealLink);
 });
 
 el.copyReveal.addEventListener("click", () => {
@@ -2310,7 +2328,8 @@ async function encodeFullGame(game: Game): Promise<string> {
   return bytesToBase64url(compressed);
 }
 
-function renderQr(canvas: HTMLCanvasElement, text: string): void {
+async function renderQr(canvas: HTMLCanvasElement, text: string): Promise<void> {
+  const QRCode = await getQrCodeModule();
   QRCode.toCanvas(canvas, text, { width: 220, margin: 1 }, () => {});
 }
 
