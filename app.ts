@@ -27,6 +27,7 @@ type View = "setup" | "player" | "host" | "reveal" | "inspiration";
 type PlayerFormStep = "identity" | "questions" | "submit";
 type TranslationValue = string | { [key: string]: TranslationValue };
 type Translations = Record<Language, TranslationValue>;
+type QuestionTextSource = { text: string | LocalizedText };
 type QuestionBankEntry = {
   id: string;
   category: string;
@@ -1001,16 +1002,20 @@ function applyTranslations(): void {
   document.documentElement.lang = state.language;
   document.title = t("app.title");
   document.querySelectorAll("[data-i18n]").forEach((node) => {
+    if (!(node instanceof HTMLElement)) return;
     const key = node.dataset.i18n;
+    if (!key) return;
     node.textContent = t(key);
   });
   document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+    if (!(node instanceof HTMLElement)) return;
     const key = node.dataset.i18nPlaceholder;
+    if (!key) return;
     node.setAttribute("placeholder", t(key));
   });
 }
 
-function getQuestionText(question?: Question | null): string {
+function getQuestionText(question?: QuestionTextSource | null): string {
   if (!question || !question.text) return "";
   if (typeof question.text === "string") return question.text;
   return question.text[state.language] || question.text.en || "";
@@ -1066,6 +1071,16 @@ function parseHash(): { view: string | null; g: string | null } {
   };
 }
 
+function isView(value: string): value is View {
+  return (
+    value === "setup" ||
+    value === "player" ||
+    value === "host" ||
+    value === "reveal" ||
+    value === "inspiration"
+  );
+}
+
 function setHash(view?: string | null, g?: string | null): void {
   const params = new URLSearchParams();
   if (view) params.set("v", view);
@@ -1100,7 +1115,7 @@ async function deflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
   if (!("CompressionStream" in window)) return bytes;
   const stream = new CompressionStream("deflate-raw");
   const writer = stream.writable.getWriter();
-  writer.write(bytes);
+  writer.write(bytes as BufferSource);
   writer.close();
   const out = await new Response(stream.readable).arrayBuffer();
   return new Uint8Array(out);
@@ -1110,7 +1125,7 @@ async function inflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
   if (!("DecompressionStream" in window)) return bytes;
   const stream = new DecompressionStream("deflate-raw");
   const writer = stream.writable.getWriter();
-  writer.write(bytes);
+  writer.write(bytes as BufferSource);
   writer.close();
   const out = await new Response(stream.readable).arrayBuffer();
   return new Uint8Array(out);
@@ -1547,7 +1562,7 @@ function attachDragHandlers(li: HTMLLIElement, questionId: string): void {
     event.preventDefault();
     const draggedId = event.dataTransfer?.getData("text/plain");
     const targetId = li.dataset.playerId;
-    if (!draggedId || draggedId === targetId) return;
+    if (!draggedId || !targetId || draggedId === targetId) return;
     const ranking = state.playerForm.byQuestion[questionId];
     const from = ranking.indexOf(draggedId);
     const to = ranking.indexOf(targetId);
@@ -2092,8 +2107,9 @@ async function initFromHash(): Promise<void> {
   }
   ensureSettings();
   normalizePresenters();
-  setView(view || "setup");
-  if (view === "reveal") {
+  const parsedView = view && isView(view) ? view : "setup";
+  setView(parsedView);
+  if (parsedView === "reveal") {
     state.revealPhase = "prompt";
     state.revealStep = 0;
     state.revealFullscreenReady = false;

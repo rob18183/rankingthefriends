@@ -25,6 +25,9 @@ export type Question = {
 };
 
 export type Submission = {
+  version?: number;
+  gameId?: string;
+  submittedAt?: string;
   playerId: string;
   byQuestion: Record<string, string[]>;
 };

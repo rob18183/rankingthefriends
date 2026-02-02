@@ -144,7 +144,7 @@ async function bootstrapApp(): Promise<{
   globalThis.document = fakeDocument as unknown as Document;
   globalThis.window = {
     addEventListener: () => {},
-  } as unknown as Window;
+  } as unknown as Window & typeof globalThis;
   Object.defineProperty(globalThis, "navigator", {
     value: { language: "en-US" },
     configurable: true,
