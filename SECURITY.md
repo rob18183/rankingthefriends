@@ -3,7 +3,7 @@
 ## Reporting a vulnerability
 If you discover a security vulnerability, please report it privately.
 
-- **Email:** security@example.com
+- **Email:** kibble_tasks5x@icloud.com
 - **Response time:** We aim to respond within 5 business days.
 
 Please include:

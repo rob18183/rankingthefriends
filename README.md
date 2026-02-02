@@ -21,10 +21,23 @@ npm run preview
 ```
 
 ## GitHub Pages deployment
-This app must be served from the **built output** (the `dist/` folder). The GitHub Actions workflow in
-`.github/workflows/deploy.yml` builds and deploys `dist/` automatically.
-The Vite config uses a relative base (`base: "./"`) so the build works correctly on GitHub Pages
-subpaths.
+This app must be served from the **built output** (`dist/`).
+
+The GitHub Actions workflow in `.github/workflows/deploy.yml` builds the project and deploys `dist/`
+to GitHub Pages automatically.
+
+Because GitHub Pages serves the site under a repository subpath: https://rob18183.github.io/rankingthefriends/ the Vite config must set the correct base path:
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+
+export default defineConfig(({ mode }) => ({
+  base: mode === "production" ? "/rankingthefriends/" : "/",
+}));
+```
+
+Without this, asset URLs will resolve incorrectly and the deployed site may appear unstyled or broken.
 
 1. Push to `main`.
 2. In GitHub, set **Settings → Pages → Source** to **GitHub Actions**.

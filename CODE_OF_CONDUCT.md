@@ -19,7 +19,7 @@ Project maintainers are responsible for clarifying and enforcing this code of co
 
 ## Reporting
 If you experience or witness unacceptable behavior, please report it privately to
-`conduct@example.com`.
+`kibble_tasks5x@icloud.com`.
 
 ## Attribution
 This code of conduct is adapted from the Contributor Covenant, version 2.1.
