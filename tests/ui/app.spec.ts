@@ -61,6 +61,7 @@ test("locks a game and shows a share link", async ({ page }) => {
   await page.click("#finalize-game");
   await expect(page.locator("#finalized-panel")).toBeVisible();
   await expect(page.locator("#share-url")).toHaveValue(/#v=player/);
+  await expect(page.locator("#setup-budget")).toContainText("Player link size:");
   await expect(page.locator("#finalized-panel")).toContainText(/What happens next/);
 });
 
@@ -190,4 +191,53 @@ test("demo reveal does not overwrite the host draft in local storage", async ({ 
   await page.goto("/");
   await expect(page.locator("#game-title")).toHaveValue("Keep My Draft");
   await expect(page.locator("#players-list input")).toHaveCount(3);
+});
+
+test("compact player links and player codes still complete the full host flow", async ({ browser }) => {
+  const hostContext = await browser.newContext();
+  const hostPage = await hostContext.newPage();
+
+  await hostPage.goto("/");
+  for (let i = 0; i < 3; i += 1) {
+    await hostPage.click("#add-player");
+  }
+  const playerInputs = hostPage.locator("#players-list input");
+  await playerInputs.nth(0).fill("Laure");
+  await playerInputs.nth(1).fill("Katy");
+  await playerInputs.nth(2).fill("Roy");
+
+  for (let i = 0; i < 2; i += 1) {
+    await hostPage.click("#add-question");
+  }
+  const questionInputs = hostPage.locator("#questions-list input");
+  await questionInputs.nth(0).fill("Best snack curator");
+  await questionInputs.nth(1).fill("Most likely to start a dance party");
+
+  await hostPage.click("#finalize-game");
+  await expect(hostPage.locator("#share-url")).toHaveValue(/#v=player&g=/);
+  const shareUrl = await hostPage.locator("#share-url").inputValue();
+  expect(shareUrl.length).toBeLessThan(600);
+
+  const playerPage = await hostContext.newPage();
+  const shareHash = new URL(shareUrl).hash;
+  await playerPage.goto("/");
+  await playerPage.evaluate((hash) => {
+    window.location.hash = hash;
+  }, shareHash);
+  await expect(playerPage.locator("#view-player")).toBeVisible();
+  await playerPage.selectOption("#player-select", { index: 1 });
+  await playerPage.click("#player-confirm");
+  await playerPage.click("#next-question");
+  await playerPage.click("#player-finish");
+
+  await expect(playerPage.locator("#submission-line")).not.toHaveValue("");
+  const playerCode = await playerPage.locator("#submission-line").inputValue();
+  expect(playerCode.length).toBeLessThan(80);
+
+  await hostPage.click("#nav-host");
+  await hostPage.locator("#import-text").fill(playerCode);
+  await hostPage.click("#import-submit");
+
+  await expect(hostPage.locator("#submission-received")).toContainText("Laure");
+  await hostContext.close();
 });

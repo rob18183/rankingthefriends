@@ -49,6 +49,20 @@ type SubmissionPayload = Submission & {
   submittedAt: string;
 };
 
+type CompactGameSubmissionWire = [number, number[]];
+
+type CompactGameWire = [
+  "g3",
+  string,
+  string[],
+  Array<[string, number]>,
+  0 | 1,
+  CompactGameSubmissionWire[]?,
+];
+
+type CompactSubmissionWire = ["s2", string, number, number[][]];
+type CompactSubmissionPermutationWire = ["s3", string, number, number[]];
+
 type AppState = {
   view: View;
   game: Game;
@@ -211,6 +225,7 @@ const translations: Translations = {
       progressQuestions: "Add at least one question",
       progressScoring: "Choose a scoring mode",
       progressLink: "Create the player link",
+      budget: "Player link size: {chars} chars. Using {percent}% of the recommended limit.",
       gameTitle: "Game title",
       gameTitlePlaceholder: "Friday night rankings",
       chooseScoring: "Choose scoring",
@@ -425,6 +440,7 @@ const translations: Translations = {
       progressQuestions: "Voeg minstens één vraag toe",
       progressScoring: "Kies een scoringmodus",
       progressLink: "Maak de spelerlink",
+      budget: "Spelerlinkgrootte: {chars} tekens. Gebruikt {percent}% van de aanbevolen limiet.",
       gameTitle: "Speltitel",
       gameTitlePlaceholder: "Vrijdagavond ranglijst",
       chooseScoring: "Kies scoring",
@@ -989,6 +1005,7 @@ const el = {
   viewInspiration: getEl<HTMLElement>("view-inspiration"),
   gameTitle: getEl<HTMLInputElement>("game-title"),
   setupChecklist: getEl<HTMLElement>("setup-checklist"),
+  setupBudget: getEl<HTMLElement>("setup-budget"),
   demoRevealLink: getEl<HTMLAnchorElement>("demo-reveal-link"),
   playersList: getEl<HTMLElement>("players-list"),
   addPlayer: getEl<HTMLButtonElement>("add-player"),
@@ -1212,6 +1229,90 @@ function bytesToUtf8(bytes: Uint8Array): string {
   return new TextDecoder().decode(bytes);
 }
 
+function hashStringFnv1a(value: string): number {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return hash >>> 0;
+}
+
+function scoringToCompactCode(scoring?: string | null): 0 | 1 {
+  return normalizeScoring(scoring) === "simple" ? 0 : 1;
+}
+
+function compactCodeToScoring(code: number): NormalizedScoringMode {
+  return code === 0 ? "simple" : "weighted";
+}
+
+function getPlayerIndexMap(game: Game): Map<string, number> {
+  return new Map(game.players.map((player, index) => [player.id, index]));
+}
+
+function getQuestionIndexMap(game: Game): Map<string, number> {
+  return new Map(game.questions.map((question, index) => [question.id, index]));
+}
+
+function getCompactGameSeed(game: Game): string {
+  const playerIndexMap = getPlayerIndexMap(game);
+  const compact = [
+    (game.title || "").trim(),
+    game.players.map((player) => player.name.trim()),
+    game.questions.map((question) => [
+      getQuestionTextValue(question).trim(),
+      playerIndexMap.get(question.presenterId || "") ?? -1,
+    ]),
+    scoringToCompactCode(game.settings?.scoring),
+  ];
+  return JSON.stringify(compact);
+}
+
+function getGameFingerprint(game: Game): string {
+  return hashStringFnv1a(getCompactGameSeed(game)).toString(36);
+}
+
+function getFactorials(size: number): number[] {
+  const factorials = [1];
+  for (let i = 1; i <= size; i += 1) {
+    factorials[i] = factorials[i - 1] * i;
+  }
+  return factorials;
+}
+
+function encodePermutation(values: number[]): number {
+  const available = values.map((_, index) => index);
+  const factorials = getFactorials(values.length);
+  let encoded = 0;
+  values.forEach((value, index) => {
+    const position = available.indexOf(value);
+    if (position === -1) {
+      throw new Error("Cannot encode invalid permutation.");
+    }
+    encoded += position * factorials[values.length - 1 - index];
+    available.splice(position, 1);
+  });
+  return encoded;
+}
+
+function decodePermutation(encoded: number, size: number): number[] {
+  const available = Array.from({ length: size }, (_, index) => index);
+  const factorials = getFactorials(size);
+  let remainder = encoded;
+  const values: number[] = [];
+  for (let i = size - 1; i >= 0; i -= 1) {
+    const factorial = factorials[i];
+    const position = Math.floor(remainder / factorial);
+    remainder %= factorial;
+    const value = available.splice(position, 1)[0];
+    if (typeof value !== "number") {
+      throw new Error("Cannot decode invalid permutation.");
+    }
+    values.push(value);
+  }
+  return values;
+}
+
 function bytesToBase64url(bytes: Uint8Array): string {
   let binary = "";
   bytes.forEach((b) => (binary += String.fromCharCode(b)));
@@ -1247,15 +1348,89 @@ async function inflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
   return new Uint8Array(out);
 }
 
-async function encodeGame(game: Game): Promise<string> {
-  const json = JSON.stringify(game);
+function encodeGameWire(game: Game, includeSubmissions: boolean): CompactGameWire {
+  const playerIndexMap = getPlayerIndexMap(game);
+  const questions: Array<[string, number]> = game.questions.map((question) => [
+    getQuestionTextValue(question).trim(),
+    playerIndexMap.get(question.presenterId || "") ?? -1,
+  ]);
+  const submissions = includeSubmissions
+    ? Object.values(game.submissions).map((submission) => {
+        const playerIndex = playerIndexMap.get(submission.playerId) ?? -1;
+        const rankings = game.questions.map((question) =>
+          (submission.byQuestion[question.id] || [])
+            .map((playerId) => playerIndexMap.get(playerId) ?? -1)
+            .filter((playerIndexValue) => playerIndexValue >= 0),
+        );
+        return [playerIndex, rankings.map((ranking) => encodePermutation(ranking))] as CompactGameSubmissionWire;
+      })
+    : undefined;
+  return [
+    "g3",
+    (game.title || "").trim(),
+    game.players.map((player) => player.name.trim()),
+    questions,
+    scoringToCompactCode(game.settings?.scoring),
+    submissions && submissions.length ? submissions : undefined,
+  ];
+}
+
+function decodeCompactGameWire(wire: CompactGameWire): Game {
+  const [, title, playerNames, questionWires, scoringCode, submissionWires] = wire;
+  const players = playerNames.map((name, index) => ({
+    id: `p${index}`,
+    name,
+  }));
+  const questions = questionWires.map(([text, presenterIndex], index) => ({
+    id: `q${index}`,
+    text,
+    presenterId: presenterIndex >= 0 ? players[presenterIndex]?.id || null : null,
+  }));
+  const game: Game = {
+    version: 2,
+    gameId: "",
+    title,
+    finalizedAt: "wire",
+    players,
+    questions,
+    submissions: {},
+    settings: { scoring: compactCodeToScoring(scoringCode), reveal: "rounds" },
+  };
+  if (submissionWires?.length) {
+    submissionWires.forEach(([playerIndex, rankingWires]) => {
+      const player = players[playerIndex];
+      if (!player) return;
+      game.submissions[player.id] = {
+        version: 2,
+        playerId: player.id,
+        gameId: "",
+        byQuestion: Object.fromEntries(
+          questions.map((question, questionIndex) => [
+            question.id,
+            decodePermutation(rankingWires[questionIndex] || 0, players.length)
+              .map((rankedIndex) => players[rankedIndex]?.id)
+              .filter((playerId): playerId is string => Boolean(playerId)),
+          ]),
+        ),
+      };
+    });
+  }
+  const fingerprint = getGameFingerprint(game);
+  game.gameId = fingerprint;
+  Object.values(game.submissions).forEach((submission) => {
+    submission.gameId = fingerprint;
+  });
+  return game;
+}
+
+async function encodeGame(game: Game, includeSubmissions: boolean): Promise<string> {
+  const json = JSON.stringify(encodeGameWire(game, includeSubmissions));
   const compressed = await deflateRaw(utf8ToBytes(json));
   return bytesToBase64url(compressed);
 }
 
 async function getShareEncoded(game: Game): Promise<string> {
-  const shareGame = { ...game, submissions: {} };
-  return encodeGame(shareGame);
+  return encodeGame(game, false);
 }
 
 function getShareLengthStatus(encoded: string): "ok" | "warn" | "error" {
@@ -1280,7 +1455,43 @@ async function decodeGame(encoded: string): Promise<Game> {
   const bytes = base64urlToBytes(encoded);
   const inflated = await inflateRaw(bytes);
   const json = bytesToUtf8(inflated);
-  return JSON.parse(json) as Game;
+  const parsed = JSON.parse(json) as
+    | Game
+    | CompactGameWire
+    | [
+        "g2",
+        string,
+        string[],
+        Array<[string, number]>,
+        0 | 1,
+        Array<[number, number[][]]>?,
+      ];
+  if (Array.isArray(parsed) && parsed[0] === "g3") {
+    return decodeCompactGameWire(parsed);
+  }
+  if (Array.isArray(parsed) && parsed[0] === "g2") {
+    const legacy = parsed as unknown as [
+      "g2",
+      string,
+      string[],
+      Array<[string, number]>,
+      0 | 1,
+      Array<[number, number[][]]>?,
+    ];
+    const upgraded: CompactGameWire = [
+      "g3",
+      legacy[1],
+      legacy[2],
+      legacy[3],
+      legacy[4],
+      legacy[5]?.map(([playerIndex, rankings]) => [
+        playerIndex,
+        rankings.map((ranking) => encodePermutation(ranking)),
+      ]),
+    ];
+    return decodeCompactGameWire(upgraded);
+  }
+  return parsed as Game;
 }
 
 function saveGameLocal(game: Game): void {
@@ -1493,6 +1704,16 @@ function renderSetupChecklist(): void {
     row.appendChild(text);
     el.setupChecklist.appendChild(row);
   });
+}
+
+function renderSetupBudget(): void {
+  const encoded = state.shareEncoded;
+  const chars = encoded.length;
+  const percent = encoded ? Math.min(999, Math.round((chars / SHARE_WARN_LENGTH) * 100)) : 0;
+  el.setupBudget.textContent = t("setup.budget", { chars, percent });
+  const status = getShareLengthStatus(encoded);
+  el.setupBudget.classList.toggle("warn", status === "warn");
+  el.setupBudget.classList.toggle("error", status === "error");
 }
 
 function renderQuestionsList(): void {
@@ -1921,20 +2142,77 @@ function createSubmission(): SubmissionPayload {
 
 async function refreshSubmissionLine(): Promise<void> {
   if (!canExportSubmission()) return;
-  const payload = await encodePayload(createSubmission());
+  const payload = await encodePayload(createSubmission(), state.game);
   el.submissionLine.value = payload;
 }
 
-async function encodePayload(obj: SubmissionPayload): Promise<string> {
-  const json = JSON.stringify(obj);
+function encodeSubmissionWire(submission: SubmissionPayload, game: Game): CompactSubmissionPermutationWire {
+  const playerIndexMap = getPlayerIndexMap(game);
+  const playerIndex = playerIndexMap.get(submission.playerId);
+  if (playerIndex === undefined) {
+    throw new Error("Cannot encode submission for unknown player.");
+  }
+  const rankingCodes = game.questions.map((question) =>
+    (submission.byQuestion[question.id] || []).map((playerId) => {
+      const rankedPlayerIndex = playerIndexMap.get(playerId);
+      if (rankedPlayerIndex === undefined) {
+        throw new Error("Cannot encode ranking with unknown player.");
+      }
+      return rankedPlayerIndex;
+    }),
+  );
+  return ["s3", getGameFingerprint(game), playerIndex, rankingCodes.map((ranking) => encodePermutation(ranking))];
+}
+
+function decodeCompactSubmissionWire(
+  wire: CompactSubmissionWire,
+  game: Game,
+): SubmissionPayload {
+  const [, fingerprint, playerIndex, rankingWires] = wire;
+  const player = game.players[playerIndex];
+  if (!player) {
+    throw new Error("Unknown player index in compact submission.");
+  }
+  return {
+    version: 2,
+    gameId: fingerprint,
+    playerId: player.id,
+    submittedAt: "",
+    byQuestion: Object.fromEntries(
+      game.questions.map((question, questionIndex) => [
+        question.id,
+        (rankingWires[questionIndex] || [])
+          .map((rankedPlayerIndex) => game.players[rankedPlayerIndex]?.id)
+          .filter((playerId): playerId is string => Boolean(playerId)),
+      ]),
+    ),
+  };
+}
+
+async function encodePayload(obj: SubmissionPayload, game: Game): Promise<string> {
+  const json = JSON.stringify(encodeSubmissionWire(obj, game));
   const compressed = await deflateRaw(utf8ToBytes(json));
   return bytesToBase64url(compressed);
 }
 
-async function decodePayload(payload: string): Promise<SubmissionPayload> {
+async function decodePayload(payload: string, game: Game): Promise<SubmissionPayload> {
   const bytes = base64urlToBytes(payload);
   const inflated = await inflateRaw(bytes);
-  return JSON.parse(bytesToUtf8(inflated)) as SubmissionPayload;
+  const parsed = JSON.parse(bytesToUtf8(inflated)) as
+    | SubmissionPayload
+    | CompactSubmissionWire
+    | CompactSubmissionPermutationWire;
+  if (Array.isArray(parsed) && parsed[0] === "s3") {
+    const [_, fingerprint, playerIndex, rankingCodes] = parsed;
+    return decodeCompactSubmissionWire(
+      ["s2", fingerprint, playerIndex, rankingCodes.map((code) => decodePermutation(code, game.players.length))],
+      game,
+    );
+  }
+  if (Array.isArray(parsed) && parsed[0] === "s2") {
+    return decodeCompactSubmissionWire(parsed, game);
+  }
+  return parsed as SubmissionPayload;
 }
 
 function isValidRanking(ranking: unknown, playerIds: string[]): boolean {
@@ -2566,6 +2844,7 @@ function renderAll(): void {
   el.gameTitle.value = state.game.title || "";
   el.gameTitle.disabled = Boolean(state.game.finalizedAt);
   renderSetupChecklist();
+  renderSetupBudget();
   renderPlayersList();
   renderQuestionsList();
   renderSuggestedQuestions();
@@ -2716,7 +2995,7 @@ el.importSubmit.addEventListener("click", async () => {
     return;
   }
   try {
-    const submission = await decodePayload(parsed.payload);
+    const submission = await decodePayload(parsed.payload, state.game);
     const player = state.game.players.find((entry) => entry.id === submission.playerId);
     const label = player?.name || parsed.identifier || submission.playerId || t("labels.unknown");
     if (!player) {
@@ -2734,7 +3013,12 @@ el.importSubmit.addEventListener("click", async () => {
         return;
       }
     }
-    if (submission.gameId !== state.game.gameId) {
+    const expectedFingerprint = getGameFingerprint(state.game);
+    if (
+      submission.gameId &&
+      submission.gameId !== state.game.gameId &&
+      submission.gameId !== expectedFingerprint
+    ) {
       showError(el.importError, t("errors.gameMismatch", { name: label }));
       return;
     }
@@ -2859,9 +3143,7 @@ async function generateRevealLink(): Promise<string> {
 }
 
 async function encodeFullGame(game: Game): Promise<string> {
-  const json = JSON.stringify(game);
-  const compressed = await deflateRaw(utf8ToBytes(json));
-  return bytesToBase64url(compressed);
+  return encodeGame(game, true);
 }
 
 async function renderQr(canvas: HTMLCanvasElement, text: string): Promise<void> {

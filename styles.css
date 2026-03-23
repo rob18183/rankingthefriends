@@ -327,6 +327,19 @@ h3 {
   color: #0f766e;
 }
 
+.setup-budget {
+  margin-top: 12px;
+  font-size: 0.92rem;
+}
+
+.setup-budget.warn {
+  color: #b45309;
+}
+
+.setup-budget.error {
+  color: #b91c1c;
+}
+
 .code-box {
   width: 100%;
   min-height: 120px;
