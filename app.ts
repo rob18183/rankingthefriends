@@ -75,6 +75,7 @@ type AppState = {
   revealStep: number;
   revealPhase: RevealPhase;
   revealFullscreenReady: boolean;
+  revealSuspenseTop: boolean;
 };
 
 const getEl = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -316,28 +317,61 @@ const translations: Translations = {
       readyCheck1: "All player codes are in.",
       readyCheck2: "This screen is for the group reveal.",
       readyCheck3: "Fullscreen is recommended.",
+      suspenseToggle: "Save the #1 reveal for last",
       fullscreen: "Go fullscreen",
       skipFullscreen: "Continue without fullscreen",
       promptTitle: "{presenter}, come forward",
       promptLine:
-        "{presenter} kicks things off. Read the question out loud before the reveal begins.",
+        "{presenter} kicks things off. Give the room a second before you show what they picked.",
+      roundHint: "This round flows like this: presenter pick, group pick, then the round winner.",
       questionLabel: "Question",
+      questionHint: "Everyone ranked the whole group in private. Now the room finds out how close the presenter got.",
       presenterNote: "Presenter:",
       progressLabel: "Question {current} of {total}",
-      nextQuestionFirst: "First Ranking Question",
-      nextQuestion: "Next Ranking Question",
-      nextPresenterReveal: "Reveal top {rank} {presenter}",
-      nextGroupReveal: "Reveal Group top {rank}",
-      showRoundScore: "Show Score",
-      showTotalScore: "Show Total Score",
-      showFinale: "Show Finale",
-      roundScoreIntro: "Let's see what the scores are for this round.",
+      phasePrompt: "Round intro",
+      phaseQuestion: "Show question",
+      phaseReveal: "The reveal",
+      phaseRoundscore: "Round winner",
+      phaseTotals: "Standings",
+      phaseFinaleIntro: "Final drumroll",
+      phaseEnd: "Finale",
+      stageHintPrompt: "Bring the presenter in and get the room ready.",
+      stageHintQuestion: "Read the question out loud and let the room react.",
+      stageHintReveal: "Reveal the presenter pick first, then let the room answer back.",
+      stageHintRoundscore: "Celebrate the best read of the room this round.",
+      stageHintTotals: "Quick standings check before the next question.",
+      stageHintFinaleIntro: "One last beat before the big finish.",
+      stageHintEnd: "Celebrate the winners and the chaos.",
+      nextQuestionFirst: "Show the first question",
+      nextQuestion: "Show the next question",
+      nextPresenterReveal: "Reveal {presenter}'s pick",
+      nextGroupReveal: "Reveal the room's answer",
+      showRoundScore: "Show the round winner",
+      showTotalScore: "Show the standings",
+      showFinaleIntro: "Start the final drumroll",
+      showFinale: "Show the finale",
+      roundScoreIntro: "Closer to the group means more points. Here's who read the room best this round.",
       roundScore: "Round score",
-      totalScore: "Scoreboard showdown",
+      totalScore: "Standings",
+      totalScoreIntro: "Quick check-in: here's where the night stands so far.",
+      finaleReadyTitle: "Final standings incoming",
+      finaleReadyIntro: "One last drumroll before the podium.",
       endTitle: "Grand finale!",
       endIntro: "The story arc of the night—who surged when it mattered most.",
       podiumTitle: "Podium time",
       podiumIntro: "Top three take their bow.",
+      awardsTitle: "Mini awards",
+      awardsIntro: "A few extra bragging rights for the night.",
+      awardSync: "Most in sync",
+      awardSyncIntro: "Closest to the room overall",
+      awardWild: "Wildest takes",
+      awardWildIntro: "Boldest rankings of the night",
+      awardComeback: "Closest comeback",
+      awardComebackIntro: "Biggest late surge",
+      flavorMatch: "Dead match",
+      flavorSplit: "The room disagrees",
+      flavorHotTake: "Hot take",
+      flavorChaos: "Chaos pick",
       winnerTag: "Winner",
       back: "Back",
       next: "Next",
@@ -532,28 +566,61 @@ const translations: Translations = {
       readyCheck1: "Alle spelercodes zijn binnen.",
       readyCheck2: "Dit scherm is voor de groepsreveal.",
       readyCheck3: "Fullscreen is aanbevolen.",
+      suspenseToggle: "Bewaar de nummer 1 voor het laatst",
       fullscreen: "Ga fullscreen",
       skipFullscreen: "Ga door zonder fullscreen",
       promptTitle: "{presenter}, kom naar voren",
       promptLine:
-        "{presenter} trapt af. Lees de vraag hardop voordat de reveal begint.",
+        "{presenter} trapt af. Geef de groep een seconde voordat je laat zien wat er gekozen is.",
+      roundHint: "Deze ronde gaat zo: eerst de keuze van de presentator, dan de groep, daarna de rondewinnaar.",
       questionLabel: "Vraag",
+      questionHint: "Iedereen rangschikte de hele groep privé. Nu ziet de kamer hoe dichtbij de presentator zat.",
       presenterNote: "Presentator:",
       progressLabel: "Vraag {current} van {total}",
-      nextQuestionFirst: "Eerste rankingvraag",
-      nextQuestion: "Volgende rankingvraag",
-      nextPresenterReveal: "Onthul top {rank} van {presenter}",
-      nextGroupReveal: "Onthul groep top {rank}",
-      showRoundScore: "Toon score",
-      showTotalScore: "Toon totaalscore",
-      showFinale: "Toon finale",
-      roundScoreIntro: "Laten we de scores voor deze ronde zien.",
+      phasePrompt: "Ronde intro",
+      phaseQuestion: "Toon vraag",
+      phaseReveal: "De reveal",
+      phaseRoundscore: "Rondewinnaar",
+      phaseTotals: "Tussenstand",
+      phaseFinaleIntro: "Laatste drumroll",
+      phaseEnd: "Finale",
+      stageHintPrompt: "Haal de presentator erbij en maak de groep warm.",
+      stageHintQuestion: "Lees de vraag hardop voor en laat de groep reageren.",
+      stageHintReveal: "Toon eerst de keuze van de presentator, daarna het antwoord van de groep.",
+      stageHintRoundscore: "Vier wie de groep deze ronde het best las.",
+      stageHintTotals: "Snelle check: zo staat iedereen ervoor.",
+      stageHintFinaleIntro: "Nog één moment spanning voor de finish.",
+      stageHintEnd: "Vier de winnaars en de chaos.",
+      nextQuestionFirst: "Toon de eerste vraag",
+      nextQuestion: "Toon de volgende vraag",
+      nextPresenterReveal: "Onthul keuze van {presenter}",
+      nextGroupReveal: "Onthul het antwoord van de groep",
+      showRoundScore: "Toon de rondewinnaar",
+      showTotalScore: "Toon de tussenstand",
+      showFinaleIntro: "Start de laatste drumroll",
+      showFinale: "Toon de finale",
+      roundScoreIntro: "Dichter bij de groep betekent meer punten. Dit zijn de beste groepslezers van deze ronde.",
       roundScore: "Rondescore",
-      totalScore: "Scorebord showdown",
+      totalScore: "Tussenstand",
+      totalScoreIntro: "Snelle tussenstand: zo staat de avond ervoor.",
+      finaleReadyTitle: "De eindstand komt eraan",
+      finaleReadyIntro: "Nog één drumroll voor het podium.",
       endTitle: "Grote finale!",
       endIntro: "Het verhaal van de avond—wie pakte de momenten die telden?",
       podiumTitle: "Podium tijd",
       podiumIntro: "De top drie pakt het podium.",
+      awardsTitle: "Mini-awards",
+      awardsIntro: "Nog wat extra opscheprechten voor vanavond.",
+      awardSync: "Meest in sync",
+      awardSyncIntro: "Over de hele avond het dichtst bij de groep",
+      awardWild: "Wildste takes",
+      awardWildIntro: "De opvallendste rankings van de avond",
+      awardComeback: "Sterkste comeback",
+      awardComebackIntro: "Grootste eindsprint",
+      flavorMatch: "Perfect raak",
+      flavorSplit: "De groep denkt anders",
+      flavorHotTake: "Pittige take",
+      flavorChaos: "Chaoskeuze",
       winnerTag: "Winnaar",
       back: "Terug",
       next: "Volgende",
@@ -984,6 +1051,7 @@ const state: AppState = {
   revealStep: 0,
   revealPhase: "prompt",
   revealFullscreenReady: false,
+  revealSuspenseTop: false,
 };
 
 const el = {
@@ -1051,28 +1119,36 @@ const el = {
   openReveal: getEl<HTMLButtonElement>("open-reveal"),
   revealQr: getEl<HTMLCanvasElement>("reveal-qr"),
   revealFullscreen: getEl<HTMLElement>("reveal-fullscreen"),
+  revealSuspenseToggle: getEl<HTMLInputElement>("reveal-suspense-toggle"),
   revealEnterFullscreen: getEl<HTMLButtonElement>("reveal-enter-fullscreen"),
   revealSkipFullscreen: getEl<HTMLButtonElement>("reveal-skip-fullscreen"),
   revealStage: getEl<HTMLElement>("reveal-stage"),
   revealTitle: getEl<HTMLElement>("reveal-title"),
+  revealPhaseLabel: getEl<HTMLElement>("reveal-phase-label"),
+  revealStageHint: getEl<HTMLElement>("reveal-stage-hint"),
   revealPromptTitle: getEl<HTMLElement>("reveal-prompt-title"),
   revealPrompt: getEl<HTMLElement>("reveal-prompt"),
   revealPresenterLine: getEl<HTMLElement>("reveal-presenter-line"),
+  revealRoundHint: getEl<HTMLElement>("reveal-round-hint"),
   revealPresenterLabel: getEl<HTMLElement>("reveal-presenter-label"),
   revealQuestionPanel: getEl<HTMLElement>("reveal-question-panel"),
   revealQuestionText: getEl<HTMLElement>("reveal-question-text"),
+  revealQuestionHint: getEl<HTMLElement>("reveal-question-hint"),
   revealRankingPanel: getEl<HTMLElement>("reveal-ranking-panel"),
   revealRankingTitle: getEl<HTMLElement>("reveal-ranking-title"),
   revealColumnPresenter: getEl<HTMLElement>("reveal-column-presenter"),
+  revealFlavor: getEl<HTMLElement>("reveal-flavor"),
   revealProgressText: getEl<HTMLElement>("reveal-progress-text"),
   revealProgressFill: getEl<HTMLElement>("reveal-progress-fill"),
   revealProgressDots: getEl<HTMLElement>("reveal-progress-dots"),
   revealRoundScorePanel: getEl<HTMLElement>("reveal-roundscore-panel"),
   revealTotalPanel: getEl<HTMLElement>("reveal-total-panel"),
+  revealFinaleIntroPanel: getEl<HTMLElement>("reveal-finaleintro-panel"),
   revealEndPanel: getEl<HTMLElement>("reveal-end-panel"),
   revealScoreChart: getEl<HTMLElement>("reveal-score-chart"),
   revealScoreLegend: getEl<HTMLElement>("reveal-score-legend"),
   revealPodium: getEl<HTMLElement>("reveal-podium"),
+  revealAwardsList: getEl<HTMLElement>("reveal-awards-list"),
   scoringSimple: getEl<HTMLInputElement>("scoring-simple"),
   scoringWeighted: getEl<HTMLInputElement>("scoring-weighted"),
   roundScoreExplain: getEl<HTMLElement>("round-score-explain"),
@@ -2446,21 +2522,23 @@ function getRevealNextLabel({
   if (revealPhase === "reveal") {
     if (revealStep < maxSteps) {
       const nextStep = revealStep + 1;
-      const rank = Math.ceil(nextStep / 2);
       if (nextStep % 2 === 1) {
-        return t("reveal.nextPresenterReveal", { rank, presenter: presenterName });
+        return t("reveal.nextPresenterReveal", { presenter: presenterName });
       }
-      return t("reveal.nextGroupReveal", { rank });
+      return t("reveal.nextGroupReveal");
     }
     return t("reveal.showRoundScore");
   }
   if (revealPhase === "roundscore") {
-    if (revealIndex >= 1) return t("reveal.showTotalScore");
+    if (shouldShowTotalsForRevealIndex(revealIndex)) return t("reveal.showTotalScore");
     if (revealIndex < totalQuestions - 1) return t("reveal.nextQuestion");
-    return t("reveal.showFinale");
+    return t("reveal.showFinaleIntro");
   }
   if (revealPhase === "totals") {
     if (revealIndex < totalQuestions - 1) return t("reveal.nextQuestion");
+    return t("reveal.showFinaleIntro");
+  }
+  if (revealPhase === "finaleintro") {
     return t("reveal.showFinale");
   }
   return t("reveal.next");
@@ -2476,6 +2554,121 @@ function formatRoundScoreExplain(
   const quip = quips[state.revealIndex % quips.length] || "";
   const flavored = quip.replace("{name}", leaderName);
   return `${t("reveal.roundScoreIntro")} ${flavored}`.trim();
+}
+
+function shouldShowTotalsForRevealIndex(revealIndex: number): boolean {
+  if (revealIndex < 1) return false;
+  if (revealIndex >= state.game.questions.length - 1) return true;
+  return (revealIndex + 1) % 2 === 0;
+}
+
+function getRevealPhaseKey(phase: RevealPhase): string {
+  if (phase === "prompt") return "reveal.phasePrompt";
+  if (phase === "question") return "reveal.phaseQuestion";
+  if (phase === "reveal") return "reveal.phaseReveal";
+  if (phase === "roundscore") return "reveal.phaseRoundscore";
+  if (phase === "totals") return "reveal.phaseTotals";
+  if (phase === "finaleintro") return "reveal.phaseFinaleIntro";
+  return "reveal.phaseEnd";
+}
+
+function getRevealStageHint(phase: RevealPhase): string {
+  if (phase === "prompt") return t("reveal.stageHintPrompt");
+  if (phase === "question") return t("reveal.stageHintQuestion");
+  if (phase === "reveal") return t("reveal.stageHintReveal");
+  if (phase === "roundscore") return t("reveal.stageHintRoundscore");
+  if (phase === "totals") return t("reveal.stageHintTotals");
+  if (phase === "finaleintro") return t("reveal.stageHintFinaleIntro");
+  return t("reveal.stageHintEnd");
+}
+
+function getRevealSlotSequence(total: number): number[] {
+  if (!state.revealSuspenseTop) return Array.from({ length: total }, (_, index) => index);
+  return Array.from({ length: total }, (_, index) => total - 1 - index);
+}
+
+function getRevealFlavor(consensusOrder: string[], presenterOrder: Array<string | null>): string {
+  if (!consensusOrder.length || !presenterOrder.length) return "";
+  const topMatch = presenterOrder[0] && presenterOrder[0] === consensusOrder[0];
+  if (topMatch) return t("reveal.flavorMatch");
+  const topPresenterPick = presenterOrder[0];
+  const topGroupPick = consensusOrder[0];
+  const topPresenterIndex = topPresenterPick ? consensusOrder.indexOf(topPresenterPick) : -1;
+  if (topPresenterIndex >= Math.ceil(consensusOrder.length / 2)) {
+    return t("reveal.flavorChaos");
+  }
+  if (topGroupPick && presenterOrder.includes(topGroupPick)) {
+    return t("reveal.flavorSplit");
+  }
+  return t("reveal.flavorHotTake");
+}
+
+function getRankingDistanceScore(submission: Submission, questionId: string): number {
+  const consensus = buildConsensusRanking(state.game, questionId);
+  const positions = new Map(consensus.map((playerId, index) => [playerId, index]));
+  const ranking = submission.byQuestion[questionId] || [];
+  return ranking.reduce((sum, playerId, index) => {
+    const consensusIndex = positions.get(playerId);
+    return sum + Math.abs(index - (consensusIndex ?? index));
+  }, 0);
+}
+
+function renderRevealAwards(scoringMode: NormalizedScoringMode): void {
+  el.revealAwardsList.innerHTML = "";
+  if (!state.game.players.length || !state.game.questions.length) return;
+
+  const syncRows = state.game.players.map((player) => ({
+    player,
+    points: state.game.questions.reduce((sum, question) => sum + getRankingDistanceScore(state.game.submissions[player.id] || { playerId: player.id, byQuestion: {} }, question.id), 0),
+  }));
+  syncRows.sort((a, b) => a.points - b.points);
+
+  const wildRows = syncRows.slice().sort((a, b) => b.points - a.points);
+
+  const previousTotals =
+    state.game.questions.length > 1
+      ? scoreTotalsThrough(state.game, state.game.questions.length - 2, scoringMode)
+      : Object.fromEntries(state.game.players.map((player) => [player.id, 0]));
+  const finalTotals = scoreTotalsThrough(state.game, state.game.questions.length - 1, scoringMode);
+  const comebackRows = state.game.players.map((player) => ({
+    player,
+    points: (finalTotals[player.id] || 0) - (previousTotals[player.id] || 0),
+  }));
+  comebackRows.sort((a, b) => b.points - a.points);
+
+  const awards = [
+    {
+      title: t("reveal.awardSync"),
+      intro: t("reveal.awardSyncIntro"),
+      winner: syncRows[0]?.player.name || t("labels.unknown"),
+    },
+    {
+      title: t("reveal.awardWild"),
+      intro: t("reveal.awardWildIntro"),
+      winner: wildRows[0]?.player.name || t("labels.unknown"),
+    },
+    {
+      title: t("reveal.awardComeback"),
+      intro: t("reveal.awardComebackIntro"),
+      winner: comebackRows[0]?.player.name || t("labels.unknown"),
+    },
+  ];
+
+  awards.forEach((award) => {
+    const card = document.createElement("div");
+    card.className = "award-card";
+    const title = document.createElement("h5");
+    title.textContent = award.title;
+    const intro = document.createElement("p");
+    intro.className = "muted";
+    intro.textContent = award.intro;
+    const winner = document.createElement("strong");
+    winner.textContent = award.winner;
+    card.appendChild(title);
+    card.appendChild(intro);
+    card.appendChild(winner);
+    el.revealAwardsList.appendChild(card);
+  });
 }
 
 function buildScoreTimeline(scoringMode: NormalizedScoringMode): {
@@ -2618,6 +2811,7 @@ function renderScoreChart(scoringMode: NormalizedScoringMode): void {
 }
 
 function renderReveal(): void {
+  el.revealSuspenseToggle.checked = state.revealSuspenseTop;
   const question = state.game.questions[state.revealIndex] || null;
   const questionText = question
     ? getQuestionTextValue(question) || t("labels.untitledQuestion")
@@ -2639,11 +2833,16 @@ function renderReveal(): void {
   el.revealPresenterLine.textContent = t("reveal.promptLine", {
     presenter: presenterName,
   });
+  el.revealRoundHint.textContent = state.revealIndex === 0 ? t("reveal.roundHint") : "";
   el.revealPresenterLabel.textContent = presenterName;
   el.revealRankingTitle.textContent = questionText;
   el.revealColumnPresenter.textContent = presenterName;
+  el.revealQuestionHint.textContent = t("reveal.questionHint");
+  el.revealFlavor.textContent = getRevealFlavor(consensusOrder, presenterRanking);
+  el.revealPhaseLabel.textContent = t(getRevealPhaseKey(state.revealPhase));
+  el.revealStageHint.textContent = getRevealStageHint(state.revealPhase);
   const roundScores = question ? scoreRound(state.game, question.id, scoringMode) : {};
-  const showTotals = state.revealIndex >= 1;
+  const showTotals = shouldShowTotalsForRevealIndex(state.revealIndex);
   const totalScores = showTotals
     ? scoreTotalsThrough(state.game, state.revealIndex, scoringMode)
     : {};
@@ -2657,6 +2856,7 @@ function renderReveal(): void {
     el.totalLeaderboard.innerHTML = "";
   }
   el.revealStage.classList.toggle("hidden", !state.revealFullscreenReady);
+  el.revealStage.classList.toggle("reveal-live", state.revealFullscreenReady);
   el.revealPrompt.classList.toggle("hidden", state.revealPhase !== "prompt");
   el.revealQuestionPanel.classList.toggle("hidden", state.revealPhase !== "question");
   el.revealRankingPanel.classList.toggle("hidden", state.revealPhase !== "reveal");
@@ -2665,23 +2865,25 @@ function renderReveal(): void {
     "hidden",
     !showTotals || state.revealPhase !== "totals"
   );
+  el.revealFinaleIntroPanel.classList.toggle("hidden", state.revealPhase !== "finaleintro");
   el.revealEndPanel.classList.toggle("hidden", state.revealPhase !== "end");
   if (state.revealPhase === "end") {
     renderScoreChart(scoringMode);
     renderFinalPodium(scoringMode);
+    renderRevealAwards(scoringMode);
   } else {
     el.revealScoreChart.innerHTML = "";
     el.revealScoreLegend.innerHTML = "";
     el.revealPodium.innerHTML = "";
+    el.revealAwardsList.innerHTML = "";
   }
   renderScoringOptions();
   el.roundScoreExplain.textContent = formatRoundScoreExplain(roundScores, presenterName);
-  el.totalScoreExplain.textContent =
-    scoringMode === "simple" ? t("scoring.totalSimple") : t("scoring.totalWeighted");
+  el.totalScoreExplain.textContent = `${t("reveal.totalScoreIntro")} ${
+    scoringMode === "simple" ? t("scoring.totalSimple") : t("scoring.totalWeighted")
+  }`;
   el.revealPrev.disabled = state.revealIndex <= 0 && state.revealPhase === "prompt";
-  el.revealNext.disabled =
-    state.revealPhase === "end" ||
-    (state.revealIndex >= state.game.questions.length - 1 && state.revealPhase === "totals");
+  el.revealNext.disabled = state.revealPhase === "end";
   el.revealNext.textContent = getRevealNextLabel({
     presenterName,
     maxSteps,
@@ -2700,6 +2902,11 @@ function renderRevealList(
 ): void {
   el.roundReveal.innerHTML = "";
   const total = consensusOrder.length;
+  const slotSequence = getRevealSlotSequence(total);
+  const stepByIndex = new Map<number, number>();
+  slotSequence.forEach((slotIndex, orderIndex) => {
+    stepByIndex.set(slotIndex, orderIndex);
+  });
   const activeStep =
     state.revealPhase === "reveal" ||
     state.revealPhase === "roundscore" ||
@@ -2708,11 +2915,14 @@ function renderRevealList(
       : 0;
   consensusOrder.forEach((playerId, index) => {
     const place = index + 1;
+    const slotOrderIndex = stepByIndex.get(index) ?? index;
     const presenterId = presenterOrder[index] ?? null;
     const presenter = state.game.players.find((p) => p.id === presenterId);
     const consensus = state.game.players.find((p) => p.id === playerId);
-    const presenterVisible = activeStep >= index * 2 + 1;
-    const matchVisible = activeStep >= index * 2 + 2;
+    const presenterStep = slotOrderIndex * 2 + 1;
+    const matchStep = slotOrderIndex * 2 + 2;
+    const presenterVisible = activeStep >= presenterStep;
+    const matchVisible = activeStep >= matchStep;
     const li = document.createElement("li");
     li.className = "reveal-row";
     const rank = document.createElement("span");
@@ -2722,6 +2932,7 @@ function renderRevealList(
     picks.className = "reveal-picks";
     const presenterValue = document.createElement("div");
     presenterValue.className = "reveal-pick";
+    if (presenterVisible && activeStep === presenterStep) presenterValue.classList.add("reveal-pop");
     presenterValue.textContent = presenterVisible
       ? presenter
         ? presenter.name
@@ -2729,6 +2940,7 @@ function renderRevealList(
       : "...";
     const groupValue = document.createElement("div");
     groupValue.className = "reveal-pick";
+    if (matchVisible && activeStep === matchStep) groupValue.classList.add("reveal-pop");
     groupValue.textContent = matchVisible
       ? consensus
         ? consensus.name
@@ -2741,7 +2953,14 @@ function renderRevealList(
     if (matchVisible) {
       const isMatch = presenterId && presenterId === playerId;
       li.classList.add(isMatch ? "match" : "miss");
-      badge.textContent = isMatch ? t("labels.match") : t("labels.noMatch");
+      if (activeStep === matchStep) badge.classList.add("reveal-pop");
+      if (isMatch) {
+        badge.textContent = t("reveal.flavorMatch");
+      } else if (index === 0) {
+        badge.textContent = t("reveal.flavorHotTake");
+      } else {
+        badge.textContent = t("reveal.flavorSplit");
+      }
     } else {
       badge.textContent = "";
     }
@@ -2805,6 +3024,7 @@ async function initFromHash(): Promise<void> {
   state.revealIndex = 0;
   state.revealStep = 0;
   state.revealFullscreenReady = false;
+  state.revealSuspenseTop = false;
   if (g) {
     try {
       state.game = await decodeGame(g);
@@ -2831,6 +3051,7 @@ async function initFromHash(): Promise<void> {
     state.revealPhase = "prompt";
     state.revealStep = 0;
     state.revealFullscreenReady = false;
+    state.revealSuspenseTop = false;
     el.revealFullscreen.classList.remove("hidden");
   }
   if (state.game.finalizedAt) {
@@ -3068,6 +3289,13 @@ el.copyReveal.addEventListener("click", () => {
 el.openReveal.addEventListener("click", () => {
   if (!el.revealUrl.value) return;
   location.href = el.revealUrl.value;
+});
+
+el.revealSuspenseToggle.addEventListener("change", () => {
+  state.revealSuspenseTop = el.revealSuspenseToggle.checked;
+  if (state.view === "reveal") {
+    renderReveal();
+  }
 });
 
 el.revealPrev.addEventListener("click", () => {

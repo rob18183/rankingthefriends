@@ -531,6 +531,14 @@ h3 {
   border-radius: 16px;
 }
 
+.reveal-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
 .reveal-progress {
   margin-bottom: 16px;
   display: grid;
@@ -541,6 +549,28 @@ h3 {
   display: flex;
   justify-content: space-between;
   font-weight: 600;
+  gap: 12px;
+  align-items: center;
+}
+
+.reveal-phase-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(124, 58, 237, 0.12);
+  color: #5b21b6;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.reveal-stage-hint,
+.reveal-round-hint,
+.reveal-question-hint,
+.reveal-flavor {
+  margin: 0;
 }
 
 .reveal-progress-bar {
@@ -605,6 +635,21 @@ h3 {
 
 .reveal-pick {
   font-weight: 600;
+}
+
+.reveal-pop {
+  animation: reveal-pop 260ms ease;
+}
+
+@keyframes reveal-pop {
+  0% {
+    transform: scale(0.96);
+    opacity: 0.25;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .reveal-label {
@@ -842,6 +887,41 @@ h3 {
   background: linear-gradient(120deg, rgba(255, 255, 255, 0.95), rgba(255, 240, 251, 0.95));
   border: 2px solid rgba(124, 58, 237, 0.1);
   box-shadow: 0 30px 40px rgba(124, 58, 237, 0.12);
+}
+
+.reveal-finaleintro {
+  text-align: center;
+  padding: 28px 18px;
+  background: linear-gradient(135deg, rgba(255, 248, 226, 0.95), rgba(255, 233, 248, 0.95));
+}
+
+.reveal-awards {
+  margin-top: 20px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(124, 58, 237, 0.12);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.awards-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-top: 12px;
+}
+
+.award-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(124, 58, 237, 0.14);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.95), rgba(250, 244, 255, 0.92));
+}
+
+.award-card h5 {
+  margin: 0;
+  font-size: 1rem;
 }
 
 .error {

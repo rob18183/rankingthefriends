@@ -372,6 +372,10 @@
             <li data-i18n="reveal.readyCheck2">This screen is for the big reveal.</li>
             <li data-i18n="reveal.readyCheck3">Fullscreen is recommended.</li>
           </ul>
+          <label class="reveal-toggle">
+            <input id="reveal-suspense-toggle" type="checkbox" />
+            <span data-i18n="reveal.suspenseToggle">Save the #1 reveal for last</span>
+          </label>
           <button id="reveal-enter-fullscreen" class="btn primary" data-i18n="reveal.fullscreen">
             Go fullscreen
           </button>
@@ -384,7 +388,9 @@
           <div class="reveal-progress">
             <div class="reveal-progress-top">
               <span id="reveal-progress-text">Question 1 of 1</span>
+              <span id="reveal-phase-label" class="reveal-phase-label">Stage</span>
             </div>
+            <p id="reveal-stage-hint" class="muted reveal-stage-hint"></p>
             <div class="reveal-progress-bar">
               <span id="reveal-progress-fill"></span>
             </div>
@@ -393,10 +399,12 @@
           <div id="reveal-prompt" class="reveal-prompt hidden">
             <h3 id="reveal-prompt-title">Presenter, come forward</h3>
             <p class="muted" id="reveal-presenter-line"></p>
+            <p id="reveal-round-hint" class="muted reveal-round-hint"></p>
           </div>
           <div id="reveal-question-panel" class="hidden">
             <h3 class="reveal-question" data-i18n="reveal.questionLabel">Question</h3>
             <p id="reveal-question-text" class="reveal-question-text"></p>
+            <p id="reveal-question-hint" class="muted reveal-question-hint"></p>
             <p class="muted reveal-presenter-note">
               <span data-i18n="reveal.presenterNote">Presenter:</span>
               <span id="reveal-presenter-label"></span>
@@ -408,6 +416,7 @@
               <span id="reveal-column-presenter">Presenter</span>
               <span data-i18n="labels.group">Group</span>
             </div>
+            <p id="reveal-flavor" class="muted reveal-flavor"></p>
             <ol id="round-reveal" class="leaderboard presenter-reveal"></ol>
           </div>
           <div id="reveal-roundscore-panel" class="hidden">
@@ -419,6 +428,12 @@
             <h3 class="reveal-question" data-i18n="reveal.totalScore">Total score</h3>
             <p class="muted score-explain" id="total-score-explain"></p>
             <ol id="total-leaderboard" class="leaderboard"></ol>
+          </div>
+          <div id="reveal-finaleintro-panel" class="hidden reveal-finaleintro">
+            <h3 class="reveal-question" data-i18n="reveal.finaleReadyTitle">Final standings incoming</h3>
+            <p class="muted" data-i18n="reveal.finaleReadyIntro">
+              One last drumroll before the podium.
+            </p>
           </div>
           <div id="reveal-end-panel" class="hidden">
             <h3 class="reveal-question" data-i18n="reveal.endTitle">Finale</h3>
@@ -434,6 +449,13 @@
             </div>
             <div id="reveal-score-chart" class="score-chart"></div>
             <div id="reveal-score-legend" class="score-legend"></div>
+            <div class="reveal-awards">
+              <div class="reveal-podium-header">
+                <h4 data-i18n="reveal.awardsTitle">Mini awards</h4>
+                <p class="muted" data-i18n="reveal.awardsIntro">A few extra bragging rights for the night.</p>
+              </div>
+              <div id="reveal-awards-list" class="awards-grid"></div>
+            </div>
           </div>
           <div class="actions">
             <button id="reveal-prev" class="btn" data-i18n="reveal.back">Back</button>

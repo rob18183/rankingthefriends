@@ -2,7 +2,7 @@ export type ScoringMode = "simple" | "weighted" | "descending";
 
 export type NormalizedScoringMode = "simple" | "weighted";
 
-export type RevealPhase = "prompt" | "question" | "reveal" | "roundscore" | "totals" | "end";
+export type RevealPhase = "prompt" | "question" | "reveal" | "roundscore" | "totals" | "finaleintro" | "end";
 
 export type RevealState = {
   revealPhase: RevealPhase;
@@ -232,6 +232,12 @@ export function getRevealMaxSteps(game: Game, questionId: string | null): number
   return consensusOrder.length * 2;
 }
 
+function shouldShowTotalsAfterQuestion(revealIndex: number, questionCount: number): boolean {
+  if (revealIndex < 1) return false;
+  if (revealIndex >= questionCount - 1) return true;
+  return (revealIndex + 1) % 2 === 0;
+}
+
 export function advanceReveal(state: RevealState, game: Game): RevealState {
   const next = { ...state };
   const question = game.questions[next.revealIndex];
@@ -248,14 +254,14 @@ export function advanceReveal(state: RevealState, game: Game): RevealState {
       next.revealPhase = "roundscore";
     }
   } else if (next.revealPhase === "roundscore") {
-    if (next.revealIndex >= 1) {
+    if (shouldShowTotalsAfterQuestion(next.revealIndex, game.questions.length)) {
       next.revealPhase = "totals";
     } else if (next.revealIndex < game.questions.length - 1) {
       next.revealIndex += 1;
       next.revealPhase = "prompt";
       next.revealStep = 0;
     } else {
-      next.revealPhase = "end";
+      next.revealPhase = "finaleintro";
     }
   } else if (next.revealPhase === "totals") {
     if (next.revealIndex < game.questions.length - 1) {
@@ -263,8 +269,10 @@ export function advanceReveal(state: RevealState, game: Game): RevealState {
       next.revealPhase = "prompt";
       next.revealStep = 0;
     } else {
-      next.revealPhase = "end";
+      next.revealPhase = "finaleintro";
     }
+  } else if (next.revealPhase === "finaleintro") {
+    next.revealPhase = "end";
   } else if (next.revealPhase === "end") {
     next.revealPhase = "end";
   }
@@ -276,7 +284,9 @@ export function rewindReveal(state: RevealState, game: Game): RevealState {
   if (next.revealPhase === "prompt") {
     if (next.revealIndex > 0) {
       next.revealIndex -= 1;
-      next.revealPhase = next.revealIndex >= 1 ? "totals" : "roundscore";
+      next.revealPhase = shouldShowTotalsAfterQuestion(next.revealIndex, game.questions.length)
+        ? "totals"
+        : "roundscore";
       const previousQuestion = game.questions[next.revealIndex];
       next.revealStep = previousQuestion ? getRevealMaxSteps(game, previousQuestion.id) : 0;
     }
@@ -294,8 +304,14 @@ export function rewindReveal(state: RevealState, game: Game): RevealState {
     next.revealStep = currentQuestion ? getRevealMaxSteps(game, currentQuestion.id) : 0;
   } else if (next.revealPhase === "totals") {
     next.revealPhase = "roundscore";
+  } else if (next.revealPhase === "finaleintro") {
+    if (shouldShowTotalsAfterQuestion(next.revealIndex, game.questions.length)) {
+      next.revealPhase = "totals";
+    } else {
+      next.revealPhase = "roundscore";
+    }
   } else if (next.revealPhase === "end") {
-    next.revealPhase = next.revealIndex >= 1 ? "totals" : "roundscore";
+    next.revealPhase = "finaleintro";
   }
   return next;
 }

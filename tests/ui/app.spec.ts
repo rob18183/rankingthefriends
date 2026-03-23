@@ -241,3 +241,54 @@ test("compact player links and player codes still complete the full host flow", 
   await expect(hostPage.locator("#submission-received")).toContainText("Laure");
   await hostContext.close();
 });
+
+test("reveal pacing uses a finale drumroll and less frequent standings", async ({ page }) => {
+  await page.addInitScript(({ storageKey, storedGame }) => {
+    window.localStorage.setItem(storageKey, JSON.stringify(storedGame));
+  }, {
+    storageKey: STORAGE_KEY,
+    storedGame: createStoredGame({
+      players: [
+        { id: "p1", name: "Laure" },
+        { id: "p2", name: "Katy" },
+        { id: "p3", name: "Roy" },
+      ],
+      questions: [
+        { id: "q1", text: "Best snack curator", presenterId: "p1" },
+        { id: "q2", text: "Most likely to start a dance party", presenterId: "p2" },
+      ],
+      submissions: {
+        p1: { playerId: "p1", byQuestion: { q1: ["p1", "p2", "p3"], q2: ["p2", "p1", "p3"] } },
+        p2: { playerId: "p2", byQuestion: { q1: ["p2", "p1", "p3"], q2: ["p2", "p3", "p1"] } },
+        p3: { playerId: "p3", byQuestion: { q1: ["p1", "p3", "p2"], q2: ["p3", "p2", "p1"] } },
+      },
+    }),
+  });
+
+  await page.goto("/#v=reveal");
+  await expect(page.locator("#reveal-suspense-toggle")).toBeVisible();
+  await page.click("#reveal-skip-fullscreen");
+  await expect(page.locator("#reveal-phase-label")).toContainText("Round intro");
+
+  for (let i = 0; i < 8; i += 1) {
+    await page.click("#reveal-next");
+  }
+  await expect(page.locator("#reveal-roundscore-panel")).toBeVisible();
+  await expect(page.locator("#reveal-next")).toContainText("Show the next question");
+
+  for (let i = 0; i < 9; i += 1) {
+    await page.click("#reveal-next");
+  }
+  await expect(page.locator("#reveal-roundscore-panel")).toBeVisible();
+  await expect(page.locator("#reveal-next")).toContainText("Show the standings");
+
+  await page.click("#reveal-next");
+  await expect(page.locator("#reveal-total-panel")).toBeVisible();
+  await expect(page.locator("#reveal-next")).toContainText("Start the final drumroll");
+
+  await page.click("#reveal-next");
+  await expect(page.locator("#reveal-finaleintro-panel")).toBeVisible();
+  await page.click("#reveal-next");
+  await expect(page.locator("#reveal-end-panel")).toBeVisible();
+  await expect(page.locator("#reveal-end-panel")).toContainText("Mini awards");
+});
