@@ -45,6 +45,7 @@
             3. Inspiration
           </button>
         </nav>
+        <p id="app-error" class="error hidden"></p>
       </header>
 
       <section id="view-setup" class="view">
@@ -242,12 +243,12 @@
         <div class="card">
           <h3 data-i18n="host.pasteTitle">Paste codes</h3>
           <p class="muted">
-            <span data-i18n="host.pasteHint">Each line: name:code</span>
+            <span data-i18n="host.pasteHint">Each line: code</span>
           </p>
           <textarea
             id="import-text"
             class="code-box"
-            placeholder="alice:abc123&#10;bob:def456"
+            placeholder="abc123&#10;def456"
             data-i18n-placeholder="host.pastePlaceholder"
           ></textarea>
           <div class="actions">

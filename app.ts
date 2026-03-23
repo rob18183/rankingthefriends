@@ -7,6 +7,7 @@ import {
   getRevealMaxSteps,
   moveRanking,
   normalizeScoring,
+  removePlayerFromGame,
   rewindReveal,
   scoreRound,
   scoreTotalsThrough,
@@ -53,6 +54,8 @@ type AppState = {
   game: Game;
   language: Language;
   shareEncoded: string;
+  startupError: string;
+  ignoreLocalLoadOnce: boolean;
   playerForm: PlayerFormState;
   revealIndex: number;
   revealStep: number;
@@ -242,8 +245,8 @@ const translations: Translations = {
       title: "Collect Codes",
       description: "Paste each player's code below (one per line). When all are in, start the reveal.",
       pasteTitle: "Paste codes",
-      pasteHint: "Each line: name:code",
-      pastePlaceholder: "alice:abc123\nbob:def456",
+      pasteHint: "Each line: code",
+      pastePlaceholder: "abc123\ndef456",
       import: "Import lines",
       status: "Submission status",
       startReveal: "Generate game night link",
@@ -313,12 +316,13 @@ const translations: Translations = {
       uniquePlayers: "Player names must be unique.",
       addQuestions: "Add at least one question.",
       completeQuestions: "Complete all questions before finishing.",
-      lineFormat: "Each line must be name:code.",
+      lineFormat: "Each line must be a code or identifier:code.",
       unknownPlayer: "Unknown player name: {name}",
       gameMismatch: "Game mismatch for {name}.",
       playerMismatch: "Player mismatch for {name}.",
       duplicateSubmission: "Duplicate submission for {name}.",
       invalidPayload: "Invalid payload for {name}.",
+      invalidGameLink: "This game link is invalid or expired.",
     },
     scoring: {
       totalSimple: "Cumulative brag points with simple scoring (starts in round 2).",
@@ -414,8 +418,8 @@ const translations: Translations = {
       description:
         "Plak de code van elke speler hieronder (één per regel). Start de reveal zodra alles binnen is.",
       pasteTitle: "Codes plakken",
-      pasteHint: "Elke regel: naam:code",
-      pastePlaceholder: "alice:abc123\nbob:def456",
+      pasteHint: "Elke regel: code",
+      pastePlaceholder: "abc123\ndef456",
       import: "Regels importeren",
       status: "Inzendingenstatus",
       startReveal: "Spelavond-link maken",
@@ -485,12 +489,13 @@ const translations: Translations = {
       uniquePlayers: "Spelernamen moeten uniek zijn.",
       addQuestions: "Voeg minstens één vraag toe.",
       completeQuestions: "Maak alle vragen af voordat je afrondt.",
-      lineFormat: "Elke regel moet naam:code zijn.",
+      lineFormat: "Elke regel moet een code of identifier:code zijn.",
       unknownPlayer: "Onbekende spelernaam: {name}",
       gameMismatch: "Spel komt niet overeen voor {name}.",
       playerMismatch: "Speler komt niet overeen voor {name}.",
       duplicateSubmission: "Dubbele inzending voor {name}.",
       invalidPayload: "Ongeldige payload voor {name}.",
+      invalidGameLink: "Deze spellink is ongeldig of verlopen.",
     },
     scoring: {
       totalSimple: "Cumulatieve brag points met simpele scoring (vanaf ronde 2).",
@@ -866,6 +871,8 @@ const state: AppState = {
   game: null as unknown as Game,
   language: "en",
   shareEncoded: "",
+  startupError: "",
+  ignoreLocalLoadOnce: false,
   playerForm: {
     playerId: null,
     visibleCount: 1,
@@ -885,6 +892,7 @@ const el = {
   navSetup: getEl<HTMLElement>("nav-setup"),
   navHost: getEl<HTMLElement>("nav-host"),
   navInspiration: getEl<HTMLElement>("nav-inspiration"),
+  appError: getEl<HTMLElement>("app-error"),
   languageSelect: getEl<HTMLSelectElement>("language-select"),
   viewSetup: getEl<HTMLElement>("view-setup"),
   viewPlayer: getEl<HTMLElement>("view-player"),
@@ -1025,6 +1033,10 @@ function getQuestionTextValue(question: Question): string {
   return typeof question.text === "string" ? question.text : getQuestionText(question);
 }
 
+function normalizePlayerName(value: string): string {
+  return value.trim().toLowerCase();
+}
+
 function getQuestionCategoryLabel(category: string): string {
   return t(`inspiration.categories.${category}`);
 }
@@ -1059,6 +1071,16 @@ function emptyGame(): Game {
     questions: [],
     submissions: {},
     settings: { scoring: "weighted", reveal: "rounds" },
+  };
+}
+
+function resetPlayerForm(): void {
+  state.playerForm = {
+    playerId: null,
+    visibleCount: 1,
+    byQuestion: {},
+    markedSubmitted: false,
+    step: "identity",
   };
 }
 
@@ -1205,6 +1227,14 @@ function hideError(node: HTMLElement): void {
   node.classList.add("hidden");
 }
 
+function renderAppError(): void {
+  if (state.startupError) {
+    showError(el.appError, state.startupError);
+    return;
+  }
+  hideError(el.appError);
+}
+
 function updateShareUrl(encoded: string): void {
   const base = location.href.split("#")[0];
   const params = new URLSearchParams();
@@ -1303,7 +1333,7 @@ function renderPlayersList(): void {
     input.value = player.name;
     input.addEventListener("input", () => {
       player.name = input.value;
-      saveGameLocal(state.game);
+      handleSetupChange();
       renderPlayerSelect();
       renderQuestionsList();
     });
@@ -1314,7 +1344,7 @@ function renderPlayersList(): void {
     remove.addEventListener("click", () => {
       if (state.game.finalizedAt) return;
       state.game.players = state.game.players.filter((p) => p.id !== player.id);
-      saveGameLocal(state.game);
+      handleSetupChange();
       renderPlayersList();
       renderPlayerSelect();
       renderQuestionsList();
@@ -1336,7 +1366,7 @@ function renderQuestionsList(): void {
     input.value = getQuestionTextValue(question);
     input.addEventListener("input", () => {
       question.text = input.value;
-      saveGameLocal(state.game);
+      handleSetupChange();
       renderPlayerQuestion();
     });
     input.disabled = Boolean(state.game.finalizedAt);
@@ -1360,7 +1390,7 @@ function renderQuestionsList(): void {
     }
     presenter.addEventListener("change", () => {
       question.presenterId = presenter.value || null;
-      saveGameLocal(state.game);
+      handleSetupChange();
     });
     const remove = document.createElement("button");
     remove.className = "btn";
@@ -1368,7 +1398,7 @@ function renderQuestionsList(): void {
     remove.addEventListener("click", () => {
       if (state.game.finalizedAt) return;
       state.game.questions = state.game.questions.filter((q) => q.id !== question.id);
-      saveGameLocal(state.game);
+      handleSetupChange();
       renderQuestionsList();
       renderPlayerQuestion();
     });
@@ -1493,6 +1523,24 @@ function renderPlayerStep(): void {
   el.playerStepSubmit.classList.toggle("hidden", state.playerForm.step !== "submit");
 }
 
+function moveRankingToPosition(ranking: string[], draggedId: string, targetId: string): string[] {
+  const from = ranking.indexOf(draggedId);
+  const to = ranking.indexOf(targetId);
+  if (from === -1 || to === -1 || from === to) return ranking;
+  const next = [...ranking];
+  next.splice(from, 1);
+  next.splice(to, 0, draggedId);
+  return next;
+}
+
+function updateRankingOrder(questionId: string, next: string[]): void {
+  const ranking = state.playerForm.byQuestion[questionId];
+  if (ranking === next) return;
+  state.playerForm.byQuestion[questionId] = next;
+  renderPlayerQuestions(state.playerForm.visibleCount);
+  refreshSubmissionLine();
+}
+
 function renderPlayerQuestions(count: number): void {
   el.playerQuestions.innerHTML = "";
   state.game.questions.slice(0, count).forEach((question, index) => {
@@ -1533,7 +1581,10 @@ function renderPlayerQuestions(count: number): void {
       li.appendChild(nameSpan);
       li.appendChild(dragSpan);
       li.appendChild(controls);
-      if (!state.playerForm.markedSubmitted) attachDragHandlers(li, question.id);
+      if (!state.playerForm.markedSubmitted) {
+        attachDragHandlers(li, question.id);
+        attachTouchHandlers(li, question.id);
+      }
       list.appendChild(li);
     });
     card.appendChild(title);
@@ -1544,11 +1595,7 @@ function renderPlayerQuestions(count: number): void {
 
 function updateRanking(questionId: string, playerId: string, delta: number): void {
   const ranking = state.playerForm.byQuestion[questionId];
-  const next = moveRanking(ranking, playerId, delta);
-  if (next === ranking) return;
-  state.playerForm.byQuestion[questionId] = next;
-  renderPlayerQuestions(state.playerForm.visibleCount);
-  refreshSubmissionLine();
+  updateRankingOrder(questionId, moveRanking(ranking, playerId, delta));
 }
 
 function attachDragHandlers(li: HTMLLIElement, questionId: string): void {
@@ -1564,12 +1611,51 @@ function attachDragHandlers(li: HTMLLIElement, questionId: string): void {
     const targetId = li.dataset.playerId;
     if (!draggedId || !targetId || draggedId === targetId) return;
     const ranking = state.playerForm.byQuestion[questionId];
-    const from = ranking.indexOf(draggedId);
-    const to = ranking.indexOf(targetId);
-    ranking.splice(from, 1);
-    ranking.splice(to, 0, draggedId);
-    renderPlayerQuestions(state.playerForm.visibleCount);
-    refreshSubmissionLine();
+    updateRankingOrder(questionId, moveRankingToPosition(ranking, draggedId, targetId));
+  });
+}
+
+function findTouchDropTarget(touch: Touch): HTMLElement | null {
+  const candidate = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (!(candidate instanceof HTMLElement)) return null;
+  return candidate.closest("[data-player-id]") as HTMLElement | null;
+}
+
+function attachTouchHandlers(li: HTMLLIElement, questionId: string): void {
+  li.addEventListener("touchstart", () => {
+    li.classList.add("touch-dragging");
+  });
+
+  li.addEventListener("touchmove", (event: TouchEvent) => {
+    if (!event.touches.length) return;
+    event.preventDefault();
+    document.querySelectorAll(".ranking-item.touch-target").forEach((node) => {
+      if (node instanceof HTMLElement) node.classList.remove("touch-target");
+    });
+    const target = findTouchDropTarget(event.touches[0]);
+    if (target && target !== li) target.classList.add("touch-target");
+  });
+
+  li.addEventListener("touchend", (event: TouchEvent) => {
+    li.classList.remove("touch-dragging");
+    document.querySelectorAll(".ranking-item.touch-target").forEach((node) => {
+      if (node instanceof HTMLElement) node.classList.remove("touch-target");
+    });
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+    const target = findTouchDropTarget(touch);
+    const draggedId = li.dataset.playerId;
+    const targetId = target?.dataset.playerId;
+    if (!draggedId || !targetId || draggedId === targetId) return;
+    const ranking = state.playerForm.byQuestion[questionId];
+    updateRankingOrder(questionId, moveRankingToPosition(ranking, draggedId, targetId));
+  });
+
+  li.addEventListener("touchcancel", () => {
+    li.classList.remove("touch-dragging");
+    document.querySelectorAll(".ranking-item.touch-target").forEach((node) => {
+      if (node instanceof HTMLElement) node.classList.remove("touch-target");
+    });
   });
 }
 
@@ -1607,12 +1693,8 @@ function createSubmission(): SubmissionPayload {
 
 async function refreshSubmissionLine(): Promise<void> {
   if (!canExportSubmission()) return;
-  const submission = createSubmission();
-  const player = state.game.players.find((p) => p.id === submission.playerId);
-  if (!player || !player.name) return;
-  const payload = await encodePayload(submission);
-  const line = `${player.name}:${payload}`;
-  el.submissionLine.value = line;
+  const payload = await encodePayload(createSubmission());
+  el.submissionLine.value = payload;
 }
 
 async function encodePayload(obj: SubmissionPayload): Promise<string> {
@@ -1650,13 +1732,48 @@ function isValidSubmissionPayload(
   );
 }
 
+function findPlayerByImportIdentifier(identifier: string): Player | null {
+  const trimmed = identifier.trim();
+  if (!trimmed) return null;
+  return (
+    state.game.players.find((player) => player.id === trimmed) ||
+    state.game.players.find((player) => normalizePlayerName(player.name) === normalizePlayerName(trimmed)) ||
+    null
+  );
+}
+
+function parseImportLine(line: string): { identifier: string | null; payload: string } | null {
+  const trimmed = line.trim();
+  if (!trimmed) return null;
+  const sepIndex = trimmed.indexOf(":");
+  if (sepIndex <= 0) {
+    return { identifier: null, payload: trimmed };
+  }
+  return {
+    identifier: trimmed.slice(0, sepIndex).trim(),
+    payload: trimmed.slice(sepIndex + 1).trim(),
+  };
+}
+
 function renderSubmissionStatus(): void {
   el.submissionStatus.innerHTML = "";
   state.game.players.forEach((player) => {
     const row = document.createElement("div");
-    row.textContent = `${player.name || t("labels.unnamed")} - ${
+    row.className = "list-row";
+    const status = document.createElement("span");
+    status.textContent = `${player.name || t("labels.unnamed")} - ${
       state.game.submissions[player.id] ? t("labels.submitted") : t("labels.missing")
     }`;
+    row.appendChild(status);
+    const remove = document.createElement("button");
+    remove.className = "btn";
+    remove.type = "button";
+    remove.textContent = t("labels.remove");
+    remove.disabled = state.game.players.length <= 2;
+    remove.addEventListener("click", async () => {
+      await removePlayerAndRecalculate(player.id);
+    });
+    row.appendChild(remove);
     el.submissionStatus.appendChild(row);
   });
   el.startReveal.disabled = !allSubmissionsIn();
@@ -1664,6 +1781,37 @@ function renderSubmissionStatus(): void {
 
 function allSubmissionsIn(): boolean {
   return state.game.players.length > 0 && state.game.players.every((p) => state.game.submissions[p.id]);
+}
+
+function scrubPlayerFormForGame(): void {
+  if (!state.playerForm.playerId || !state.game.players.some((player) => player.id === state.playerForm.playerId)) {
+    resetPlayerForm();
+    return;
+  }
+  const validQuestionIds = new Set(state.game.questions.map((question) => question.id));
+  const nextByQuestion = Object.fromEntries(
+    Object.entries(state.playerForm.byQuestion)
+      .filter(([questionId]) => validQuestionIds.has(questionId))
+      .map(([questionId, ranking]) => [
+        questionId,
+        ranking.filter((playerId) => state.game.players.some((player) => player.id === playerId)),
+      ]),
+  );
+  state.playerForm.byQuestion = nextByQuestion;
+  state.playerForm.visibleCount = Math.min(Math.max(1, state.playerForm.visibleCount), state.game.questions.length || 1);
+  state.playerForm.markedSubmitted = false;
+  state.playerForm.step = "identity";
+}
+
+async function removePlayerAndRecalculate(playerId: string): Promise<void> {
+  state.game = removePlayerFromGame(state.game, playerId);
+  normalizePresenters();
+  scrubPlayerFormForGame();
+  saveGameLocal(state.game);
+  if (state.game.finalizedAt) {
+    await syncHashFromGame(state.game);
+  }
+  renderAll();
 }
 
 // Scoring helpers live in game-logic.js
@@ -2065,7 +2213,8 @@ function renderLeaderboard(node: HTMLElement, scoreMap: Record<string, number>):
 function validateSetup(): string | null {
   const names = state.game.players.map((p) => p.name.trim()).filter(Boolean);
   if (names.length < 2) return t("errors.addPlayers");
-  if (new Set(names).size !== names.length) return t("errors.uniquePlayers");
+  const normalizedNames = names.map(normalizePlayerName);
+  if (new Set(normalizedNames).size !== normalizedNames.length) return t("errors.uniquePlayers");
   const questions = state.game.questions
     .map((q) => getQuestionTextValue(q).trim())
     .filter(Boolean);
@@ -2095,13 +2244,32 @@ async function updateSetupWarnings(): Promise<void> {
 
 async function initFromHash(): Promise<void> {
   const { view, g } = parseHash();
+  const preserveStartupError = state.ignoreLocalLoadOnce && !g;
+  if (!preserveStartupError) {
+    state.startupError = "";
+  }
+  state.shareEncoded = "";
+  resetPlayerForm();
+  state.revealPhase = "prompt";
+  state.revealIndex = 0;
+  state.revealStep = 0;
+  state.revealFullscreenReady = false;
   if (g) {
     try {
       state.game = await decodeGame(g);
       saveGameLocal(state.game);
     } catch {
-      state.game = loadGameLocal() || emptyGame();
+      state.startupError = t("errors.invalidGameLink");
+      state.game = emptyGame();
+      state.ignoreLocalLoadOnce = true;
+      setView("setup");
+      setHash("setup", null);
+      renderAll();
+      return;
     }
+  } else if (state.ignoreLocalLoadOnce) {
+    state.game = emptyGame();
+    state.ignoreLocalLoadOnce = false;
   } else {
     state.game = loadGameLocal() || emptyGame();
   }
@@ -2115,10 +2283,14 @@ async function initFromHash(): Promise<void> {
     state.revealFullscreenReady = false;
     el.revealFullscreen.classList.remove("hidden");
   }
+  if (state.game.finalizedAt) {
+    await syncHashFromGame(state.game);
+  }
   renderAll();
 }
 
 function renderAll(): void {
+  renderAppError();
   el.gameTitle.value = state.game.title || "";
   el.gameTitle.disabled = Boolean(state.game.finalizedAt);
   renderPlayersList();
@@ -2137,8 +2309,10 @@ function renderAll(): void {
   el.finalizedPanel.classList.toggle("hidden", !state.game.finalizedAt);
   el.revealLinkPanel.classList.add("hidden");
   if (state.game.finalizedAt) {
-    if (!state.shareEncoded) syncHashFromGame(state.game);
     el.gameCode.value = state.shareEncoded;
+  } else {
+    el.gameCode.value = "";
+    el.shareUrl.value = "";
   }
   renderPlayerStep();
 }
@@ -2257,26 +2431,32 @@ el.importSubmit.addEventListener("click", async () => {
   if (!text) return;
   const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   for (const line of lines) {
-    const sepIndex = line.indexOf(":");
-    if (sepIndex <= 0) {
+    const parsed = parseImportLine(line);
+    if (!parsed || !parsed.payload) {
       showError(el.importError, t("errors.lineFormat"));
       continue;
     }
-    const name = line.slice(0, sepIndex).trim();
-    const payload = line.slice(sepIndex + 1).trim();
-    const player = state.game.players.find((p) => p.name === name);
-    if (!player) {
-      showError(el.importError, t("errors.unknownPlayer", { name }));
-      continue;
-    }
     try {
-      const submission = await decodePayload(payload);
-      if (submission.gameId !== state.game.gameId) {
-        showError(el.importError, t("errors.gameMismatch", { name }));
+      const submission = await decodePayload(parsed.payload);
+      const player = state.game.players.find((entry) => entry.id === submission.playerId);
+      const label = player?.name || parsed.identifier || submission.playerId || t("labels.unknown");
+      if (!player) {
+        showError(el.importError, t("errors.unknownPlayer", { name: label }));
         continue;
       }
-      if (submission.playerId !== player.id) {
-        showError(el.importError, t("errors.playerMismatch", { name }));
+      if (parsed.identifier) {
+        const matchedPlayer = findPlayerByImportIdentifier(parsed.identifier);
+        if (!matchedPlayer) {
+          showError(el.importError, t("errors.unknownPlayer", { name: parsed.identifier }));
+          continue;
+        }
+        if (matchedPlayer.id !== submission.playerId) {
+          showError(el.importError, t("errors.playerMismatch", { name: parsed.identifier }));
+          continue;
+        }
+      }
+      if (submission.gameId !== state.game.gameId) {
+        showError(el.importError, t("errors.gameMismatch", { name: label }));
         continue;
       }
       if (
@@ -2286,17 +2466,17 @@ el.importSubmit.addEventListener("click", async () => {
           state.game.questions.map((question) => question.id),
         )
       ) {
-        showError(el.importError, t("errors.invalidPayload", { name }));
+        showError(el.importError, t("errors.invalidPayload", { name: label }));
         continue;
       }
       if (state.game.submissions[player.id]) {
-        showError(el.importError, t("errors.duplicateSubmission", { name }));
+        showError(el.importError, t("errors.duplicateSubmission", { name: label }));
         continue;
       }
       state.game.submissions[player.id] = submission;
       saveGameLocal(state.game);
     } catch {
-      showError(el.importError, t("errors.invalidPayload", { name }));
+      showError(el.importError, t("errors.invalidPayload", { name: parsed.identifier || t("labels.unknown") }));
     }
   }
   renderSubmissionStatus();

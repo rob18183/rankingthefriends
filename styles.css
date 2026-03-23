@@ -248,11 +248,25 @@ h3 {
 
 .ranking-item {
   cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .rank-controls {
   display: flex;
   gap: 6px;
+}
+
+.ranking-item.touch-dragging {
+  opacity: 0.75;
+  transform: scale(1.02);
+  box-shadow: 0 14px 24px rgba(124, 58, 237, 0.16);
+}
+
+.ranking-item.touch-target {
+  border-color: rgba(124, 58, 237, 0.5);
+  background: rgba(124, 58, 237, 0.08);
 }
 
 .rank-btn {

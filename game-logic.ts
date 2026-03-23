@@ -57,6 +57,40 @@ export function addQuestion(game: Game, question: Question): Game {
   return { ...game, questions: [...game.questions, question] };
 }
 
+export function removePlayerFromGame(game: Game, playerId: string): Game {
+  const players = game.players.filter((player) => player.id !== playerId);
+  if (players.length === game.players.length) return game;
+
+  const questions = game.questions.map((question) => ({
+    ...question,
+    presenterId: question.presenterId === playerId ? null : question.presenterId,
+  }));
+
+  const submissions = Object.fromEntries(
+    Object.entries(game.submissions)
+      .filter(([submissionPlayerId]) => submissionPlayerId !== playerId)
+      .map(([submissionPlayerId, submission]) => [
+        submissionPlayerId,
+        {
+          ...submission,
+          byQuestion: Object.fromEntries(
+            Object.entries(submission.byQuestion).map(([questionId, ranking]) => [
+              questionId,
+              ranking.filter((rankedPlayerId) => rankedPlayerId !== playerId),
+            ]),
+          ),
+        },
+      ]),
+  );
+
+  return {
+    ...game,
+    players,
+    questions,
+    submissions,
+  };
+}
+
 export function moveRanking(ranking: string[], playerId: string, delta: number): string[] {
   const from = ranking.indexOf(playerId);
   if (from === -1) return ranking;

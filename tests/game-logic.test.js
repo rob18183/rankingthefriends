@@ -7,6 +7,7 @@ import {
   buildConsensusRanking,
   getRevealMaxSteps,
   moveRanking,
+  removePlayerFromGame,
   rewindReveal,
   scoreRound,
   scoreTotalsThrough,
@@ -37,6 +38,32 @@ describe("game logic", () => {
     assert.deepEqual(moved, ["p2", "p1", "p3"]);
     const unchanged = moveRanking(ranking, "missing", 1);
     assert.deepEqual(unchanged, ranking);
+  });
+
+  it("removes a player and recalculates rankings and submissions", () => {
+    const game = {
+      players: [
+        { id: "p1", name: "Alice" },
+        { id: "p2", name: "Bob" },
+        { id: "p3", name: "Casey" },
+      ],
+      questions: [{ id: "q1", text: "Question 1", presenterId: "p3" }],
+      submissions: {
+        p1: { playerId: "p1", byQuestion: { q1: ["p3", "p1", "p2"] } },
+        p2: { playerId: "p2", byQuestion: { q1: ["p2", "p3", "p1"] } },
+        p3: { playerId: "p3", byQuestion: { q1: ["p1", "p2", "p3"] } },
+      },
+    };
+
+    const next = removePlayerFromGame(game, "p3");
+    assert.deepEqual(
+      next.players.map((player) => player.id),
+      ["p1", "p2"],
+    );
+    assert.equal(next.questions[0].presenterId, null);
+    assert.deepEqual(next.submissions.p1.byQuestion.q1, ["p1", "p2"]);
+    assert.deepEqual(next.submissions.p2.byQuestion.q1, ["p2", "p1"]);
+    assert.equal(next.submissions.p3, undefined);
   });
 
   it("scores rounds and totals from submissions", () => {
