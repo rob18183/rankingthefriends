@@ -280,9 +280,10 @@ const translations: Translations = {
       noneWaiting: "Nobody is missing.",
       noneReceived: "No player codes yet.",
       pasteTitle: "Add player codes",
-      pasteHint: "Paste one player code per line.",
-      pastePlaceholder: "abc123\ndef456",
-      import: "Import player codes",
+      pasteHint: "Add one player code at a time as each friend sends it in.",
+      singleCodeLabel: "Add one player code",
+      pastePlaceholder: "abc123",
+      import: "Add player code",
       status: "Submission status",
       startReveal: "Create reveal link",
       removeNoShow: "Remove no-show",
@@ -494,9 +495,10 @@ const translations: Translations = {
       noneWaiting: "Niemand ontbreekt.",
       noneReceived: "Nog geen spelercodes binnen.",
       pasteTitle: "Voeg spelercodes toe",
-      pasteHint: "Plak één spelercode per regel.",
-      pastePlaceholder: "abc123\ndef456",
-      import: "Spelercodes importeren",
+      pasteHint: "Voeg spelercodes één voor één toe zodra ze binnenkomen.",
+      singleCodeLabel: "Voeg één spelercode toe",
+      pastePlaceholder: "abc123",
+      import: "Spelercode toevoegen",
       status: "Inzendingenstatus",
       startReveal: "Maak reveallink",
       removeNoShow: "Verwijder afwezige",
@@ -970,6 +972,9 @@ const state: AppState = {
 
 const el = {
   appHeader: getEl<HTMLElement>("app-header"),
+  heroActions: getEl<HTMLElement>("hero-actions"),
+  overviewCard: getEl<HTMLElement>("overview-card"),
+  demoCard: getEl<HTMLElement>("demo-card"),
   heroStart: getEl<HTMLButtonElement>("hero-start"),
   navBar: getEl<HTMLElement>("nav-bar"),
   navSetup: getEl<HTMLElement>("nav-setup"),
@@ -1015,7 +1020,7 @@ const el = {
   submissionLine: getEl<HTMLInputElement>("submission-line"),
   copySubmissionLine: getEl<HTMLButtonElement>("copy-submission-line"),
   playerError: getEl<HTMLElement>("player-error"),
-  importText: getEl<HTMLTextAreaElement>("import-text"),
+  importText: getEl<HTMLInputElement>("import-text"),
   importSubmit: getEl<HTMLButtonElement>("import-submit"),
   importError: getEl<HTMLElement>("import-error"),
   submissionSummary: getEl<HTMLElement>("submission-summary"),
@@ -1135,7 +1140,7 @@ function renderLanguageOptions(): void {
   Object.keys(translations).forEach((lang) => {
     const option = document.createElement("option");
     option.value = lang;
-    option.textContent = lang === "nl" ? "Nederlands" : "English";
+    option.textContent = lang === "nl" ? "🇳🇱 Nederlands" : "🇬🇧 English";
     el.languageSelect.appendChild(option);
   });
   el.languageSelect.value = state.language;
@@ -1355,6 +1360,10 @@ function setView(view: View): void {
   el.viewInspiration.classList.toggle("hidden", view !== "inspiration");
   el.navBar.classList.toggle("hidden", view === "player");
   el.appHeader.classList.toggle("hidden", view === "reveal");
+  const isPlayerView = view === "player";
+  el.heroActions.classList.toggle("hidden", isPlayerView);
+  el.overviewCard.classList.toggle("hidden", isPlayerView);
+  el.demoCard.classList.toggle("hidden", isPlayerView);
   if (view === "player") renderPlayerStep();
   el.navSetup.classList.toggle("active", view === "setup");
   el.navHost.classList.toggle("active", view === "host");
@@ -2521,7 +2530,6 @@ async function initFromHash(): Promise<void> {
   if (g) {
     try {
       state.game = await decodeGame(g);
-      saveGameLocal(state.game);
     } catch {
       state.startupError = t("errors.invalidGameLink");
       state.game = emptyGame();
@@ -2700,59 +2708,64 @@ el.copySubmissionLine.addEventListener("click", () => {
 
 el.importSubmit.addEventListener("click", async () => {
   hideError(el.importError);
-  const text = el.importText.value.trim();
-  if (!text) return;
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-  for (const line of lines) {
-    const parsed = parseImportLine(line);
-    if (!parsed || !parsed.payload) {
-      showError(el.importError, t("errors.lineFormat"));
-      continue;
+  const line = el.importText.value.trim();
+  if (!line) return;
+  const parsed = parseImportLine(line);
+  if (!parsed || !parsed.payload) {
+    showError(el.importError, t("errors.lineFormat"));
+    return;
+  }
+  try {
+    const submission = await decodePayload(parsed.payload);
+    const player = state.game.players.find((entry) => entry.id === submission.playerId);
+    const label = player?.name || parsed.identifier || submission.playerId || t("labels.unknown");
+    if (!player) {
+      showError(el.importError, t("errors.unknownPlayer", { name: label }));
+      return;
     }
-    try {
-      const submission = await decodePayload(parsed.payload);
-      const player = state.game.players.find((entry) => entry.id === submission.playerId);
-      const label = player?.name || parsed.identifier || submission.playerId || t("labels.unknown");
-      if (!player) {
-        showError(el.importError, t("errors.unknownPlayer", { name: label }));
-        continue;
+    if (parsed.identifier) {
+      const matchedPlayer = findPlayerByImportIdentifier(parsed.identifier);
+      if (!matchedPlayer) {
+        showError(el.importError, t("errors.unknownPlayer", { name: parsed.identifier }));
+        return;
       }
-      if (parsed.identifier) {
-        const matchedPlayer = findPlayerByImportIdentifier(parsed.identifier);
-        if (!matchedPlayer) {
-          showError(el.importError, t("errors.unknownPlayer", { name: parsed.identifier }));
-          continue;
-        }
-        if (matchedPlayer.id !== submission.playerId) {
-          showError(el.importError, t("errors.playerMismatch", { name: parsed.identifier }));
-          continue;
-        }
+      if (matchedPlayer.id !== submission.playerId) {
+        showError(el.importError, t("errors.playerMismatch", { name: parsed.identifier }));
+        return;
       }
-      if (submission.gameId !== state.game.gameId) {
-        showError(el.importError, t("errors.gameMismatch", { name: label }));
-        continue;
-      }
-      if (
-        !isValidSubmissionPayload(
-          submission,
-          state.game.players.map((entry) => entry.id),
-          state.game.questions.map((question) => question.id),
-        )
-      ) {
-        showError(el.importError, t("errors.invalidPayload", { name: label }));
-        continue;
-      }
-      if (state.game.submissions[player.id]) {
-        showError(el.importError, t("errors.duplicateSubmission", { name: label }));
-        continue;
-      }
-      state.game.submissions[player.id] = submission;
-      saveGameLocal(state.game);
-    } catch {
-      showError(el.importError, t("errors.invalidPayload", { name: parsed.identifier || t("labels.unknown") }));
     }
+    if (submission.gameId !== state.game.gameId) {
+      showError(el.importError, t("errors.gameMismatch", { name: label }));
+      return;
+    }
+    if (
+      !isValidSubmissionPayload(
+        submission,
+        state.game.players.map((entry) => entry.id),
+        state.game.questions.map((question) => question.id),
+      )
+    ) {
+      showError(el.importError, t("errors.invalidPayload", { name: label }));
+      return;
+    }
+    if (state.game.submissions[player.id]) {
+      showError(el.importError, t("errors.duplicateSubmission", { name: label }));
+      return;
+    }
+    state.game.submissions[player.id] = submission;
+    saveGameLocal(state.game);
+    el.importText.value = "";
+  } catch {
+    showError(el.importError, t("errors.invalidPayload", { name: parsed.identifier || t("labels.unknown") }));
+    return;
   }
   renderSubmissionStatus();
+});
+
+el.importText.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  el.importSubmit.click();
 });
 
 el.startReveal.addEventListener("click", async () => {

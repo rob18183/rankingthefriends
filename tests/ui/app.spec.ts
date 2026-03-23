@@ -24,6 +24,8 @@ test("navigates between views and toggles language", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector("#language-select");
   await expect(page.locator("#language-select option")).toHaveCount(2);
+  await expect(page.locator("#language-select")).toContainText("🇬🇧");
+  await expect(page.locator("#language-select")).toContainText("🇳🇱");
 
   await expect(page.locator("#hero-start")).toHaveText(/Start a new game/);
   await expect(page.locator("#nav-setup")).toHaveText(/Start/);
@@ -148,4 +150,44 @@ test("player end state clearly shows the send-back steps", async ({ page }) => {
   await expect(page.locator("#player-step-submit")).toContainText("What to do now");
   await expect(page.locator("#player-step-submit")).toContainText("Copy your player code");
   await expect(page.locator("#player-step-submit")).toContainText("Send it back to the host");
+});
+
+test("player links hide host marketing panels", async ({ page }) => {
+  await page.addInitScript(({ storageKey, storedGame }) => {
+    window.localStorage.setItem(storageKey, JSON.stringify(storedGame));
+  }, {
+    storageKey: STORAGE_KEY,
+    storedGame: createStoredGame(),
+  });
+
+  await page.goto("/#v=player");
+
+  await expect(page.locator("#view-player")).toBeVisible();
+  await expect(page.locator("#hero-actions")).toBeHidden();
+  await expect(page.locator("#demo-card")).toBeHidden();
+  await expect(page.locator("#overview-card")).toBeHidden();
+});
+
+test("demo reveal does not overwrite the host draft in local storage", async ({ page }) => {
+  await page.addInitScript(({ storageKey, storedGame }) => {
+    window.localStorage.setItem(storageKey, JSON.stringify(storedGame));
+  }, {
+    storageKey: STORAGE_KEY,
+    storedGame: createStoredGame({
+      title: "Keep My Draft",
+      players: [{ id: "p1", name: "Laure" }, { id: "p2", name: "Katy" }, { id: "p3", name: "Roy" }],
+      questions: [{ id: "q1", text: "Best snack curator", presenterId: "p1" }],
+    }),
+  });
+
+  await page.goto("/");
+  const demoHref = await page.locator("#demo-reveal-link").getAttribute("href");
+  if (!demoHref) throw new Error("Missing demo reveal href.");
+
+  await page.goto(demoHref);
+  await expect(page.locator("#view-reveal")).toBeVisible();
+
+  await page.goto("/");
+  await expect(page.locator("#game-title")).toHaveValue("Keep My Draft");
+  await expect(page.locator("#players-list input")).toHaveCount(3);
 });

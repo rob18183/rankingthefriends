@@ -9,7 +9,13 @@
   <body>
     <main class="app">
       <header class="app-header" id="app-header">
-        <h1 data-i18n="app.title">Ranking Your Friends</h1>
+        <div class="header-top">
+          <h1 data-i18n="app.title">Ranking Your Friends</h1>
+          <div class="language" id="language-picker">
+            <label for="language-select" class="sr-only" data-i18n="language.label">Language</label>
+            <select id="language-select" aria-label="Language"></select>
+          </div>
+        </div>
         <p class="subtitle" data-i18n="app.subtitle">
           A playful party game: pick juicy questions, rank each other, and reveal the funniest results
           round by round.
@@ -18,10 +24,10 @@
           No accounts, no logins. The host locks the game, players send a short secret code,
           and the host runs a big-screen style reveal.
         </p>
-        <div class="hero-actions">
+        <div id="hero-actions" class="hero-actions">
           <button id="hero-start" class="btn primary" data-i18n="app.startCta">Start a new game</button>
         </div>
-        <div class="card overview-card">
+        <div id="overview-card" class="card overview-card">
           <h2 data-i18n="app.howTitle">How it works</h2>
           <ol class="workflow-list">
             <li>
@@ -44,7 +50,7 @@
             </li>
           </ol>
         </div>
-        <div class="card demo-card">
+        <div id="demo-card" class="card demo-card">
           <h2 data-i18n="demo.title">Try the demo reveal</h2>
           <p class="muted" data-i18n="demo.description">
             Jump into a filled-out game with six players and five questions to see the reveal flow
@@ -59,10 +65,6 @@
           >
             Open demo reveal
           </a>
-        </div>
-        <div class="language">
-          <label for="language-select" data-i18n="language.label">Language</label>
-          <select id="language-select"></select>
         </div>
         <nav id="nav-bar" class="nav">
           <button id="nav-setup" class="nav-btn" data-i18n="nav.setup">1. Setup</button>
@@ -289,7 +291,7 @@
       <section id="view-host" class="view hidden">
         <h2 data-i18n="host.title">Collect Codes</h2>
         <p class="muted" data-i18n="host.description">
-          Paste each player's code below (one per line). When all are in, start the reveal.
+          Add player codes as they come in. When everyone is in, start the reveal.
         </p>
         <div class="card inset-card">
           <h3 data-i18n="host.checklistTitle">Host checklist</h3>
@@ -301,18 +303,19 @@
         </div>
         <div class="card">
           <h3 data-i18n="host.pasteTitle">Paste codes</h3>
-          <p class="muted">
-            <span data-i18n="host.pasteHint">Each line: code</span>
-          </p>
-          <textarea
-            id="import-text"
-            class="code-box"
-            placeholder="abc123&#10;def456"
-            data-i18n-placeholder="host.pastePlaceholder"
-          ></textarea>
+          <p class="muted" data-i18n="host.pasteHint">Each line: code</p>
+          <label class="field">
+            <span data-i18n="host.singleCodeLabel">Add one player code</span>
+            <input
+              id="import-text"
+              type="text"
+              placeholder="abc123"
+              data-i18n-placeholder="host.pastePlaceholder"
+            />
+          </label>
           <div class="actions">
             <button id="import-submit" class="btn primary" data-i18n="host.import">
-              Import lines
+              Add player code
             </button>
           </div>
           <p id="import-error" class="error hidden"></p>
