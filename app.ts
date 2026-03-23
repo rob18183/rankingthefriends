@@ -331,14 +331,12 @@ const translations: Translations = {
       phasePrompt: "Round intro",
       phaseQuestion: "Show question",
       phaseReveal: "The reveal",
-      phaseRoundscore: "Round winner",
       phaseTotals: "Standings",
       phaseFinaleIntro: "Final drumroll",
       phaseEnd: "Finale",
       stageHintPrompt: "Bring the presenter in and get the room ready.",
       stageHintQuestion: "Read the question out loud and let the room react.",
       stageHintReveal: "Reveal the presenter pick first, then let the room answer back.",
-      stageHintRoundscore: "Celebrate the best read of the room this round.",
       stageHintTotals: "Quick standings check before the next question.",
       stageHintFinaleIntro: "One last beat before the big finish.",
       stageHintEnd: "Celebrate the winners and the chaos.",
@@ -346,14 +344,12 @@ const translations: Translations = {
       nextQuestion: "Show the next question",
       nextPresenterReveal: "Reveal {presenter}'s pick",
       nextGroupReveal: "Reveal the room's answer",
-      showRoundScore: "Show the round winner",
       showTotalScore: "Show the standings",
       showFinaleIntro: "Start the final drumroll",
       showFinale: "Show the finale",
-      roundScoreIntro: "Closer to the group means more points. Here's who read the room best this round.",
-      roundScore: "Round score",
       totalScore: "Standings",
       totalScoreIntro: "Quick check-in: here's where the night stands so far.",
+      keyHint: "[Left/Backspace] back  [Right/Space] next",
       finaleReadyTitle: "Final standings incoming",
       finaleReadyIntro: "One last drumroll before the podium.",
       endTitle: "Grand finale!",
@@ -580,14 +576,12 @@ const translations: Translations = {
       phasePrompt: "Ronde intro",
       phaseQuestion: "Toon vraag",
       phaseReveal: "De reveal",
-      phaseRoundscore: "Rondewinnaar",
       phaseTotals: "Tussenstand",
       phaseFinaleIntro: "Laatste drumroll",
       phaseEnd: "Finale",
       stageHintPrompt: "Haal de presentator erbij en maak de groep warm.",
       stageHintQuestion: "Lees de vraag hardop voor en laat de groep reageren.",
       stageHintReveal: "Toon eerst de keuze van de presentator, daarna het antwoord van de groep.",
-      stageHintRoundscore: "Vier wie de groep deze ronde het best las.",
       stageHintTotals: "Snelle check: zo staat iedereen ervoor.",
       stageHintFinaleIntro: "Nog één moment spanning voor de finish.",
       stageHintEnd: "Vier de winnaars en de chaos.",
@@ -595,14 +589,12 @@ const translations: Translations = {
       nextQuestion: "Toon de volgende vraag",
       nextPresenterReveal: "Onthul keuze van {presenter}",
       nextGroupReveal: "Onthul het antwoord van de groep",
-      showRoundScore: "Toon de rondewinnaar",
       showTotalScore: "Toon de tussenstand",
       showFinaleIntro: "Start de laatste drumroll",
       showFinale: "Toon de finale",
-      roundScoreIntro: "Dichter bij de groep betekent meer punten. Dit zijn de beste groepslezers van deze ronde.",
-      roundScore: "Rondescore",
       totalScore: "Tussenstand",
       totalScoreIntro: "Snelle tussenstand: zo staat de avond ervoor.",
+      keyHint: "[Links/Backspace] terug  [Rechts/Spatie] verder",
       finaleReadyTitle: "De eindstand komt eraan",
       finaleReadyIntro: "Nog één drumroll voor het podium.",
       endTitle: "Grote finale!",
@@ -687,23 +679,6 @@ const translations: Translations = {
       },
     },
   },
-};
-
-const roundScoreQuips = {
-  en: [
-    "{name} is taking the lead!",
-    "Did you see that? {name} is pulling ahead.",
-    "{name} really gave you an ass whooping.",
-    "{name}, are you really trying?",
-    "The crowd goes wild for {name}.",
-  ],
-  nl: [
-    "{name} pakt de leiding!",
-    "Zie je dat? {name} loopt uit.",
-    "{name} gaf jullie net een pak rammel.",
-    "{name}, doe je wel echt je best?",
-    "Het publiek gaat los voor {name}.",
-  ],
 };
 
 const questionBank: QuestionBankEntry[] = [
@@ -1141,7 +1116,6 @@ const el = {
   revealProgressText: getEl<HTMLElement>("reveal-progress-text"),
   revealProgressFill: getEl<HTMLElement>("reveal-progress-fill"),
   revealProgressDots: getEl<HTMLElement>("reveal-progress-dots"),
-  revealRoundScorePanel: getEl<HTMLElement>("reveal-roundscore-panel"),
   revealTotalPanel: getEl<HTMLElement>("reveal-total-panel"),
   revealFinaleIntroPanel: getEl<HTMLElement>("reveal-finaleintro-panel"),
   revealEndPanel: getEl<HTMLElement>("reveal-end-panel"),
@@ -1151,13 +1125,12 @@ const el = {
   revealAwardsList: getEl<HTMLElement>("reveal-awards-list"),
   scoringSimple: getEl<HTMLInputElement>("scoring-simple"),
   scoringWeighted: getEl<HTMLInputElement>("scoring-weighted"),
-  roundScoreExplain: getEl<HTMLElement>("round-score-explain"),
   totalScoreExplain: getEl<HTMLElement>("total-score-explain"),
-  roundLeaderboard: getEl<HTMLElement>("round-leaderboard"),
   roundReveal: getEl<HTMLElement>("round-reveal"),
   totalLeaderboard: getEl<HTMLElement>("total-leaderboard"),
   revealPrev: getEl<HTMLButtonElement>("reveal-prev"),
   revealNext: getEl<HTMLButtonElement>("reveal-next"),
+  revealKeyHint: getEl<HTMLElement>("reveal-key-hint"),
 };
 
 function createId(prefix: string): string {
@@ -2527,10 +2500,6 @@ function getRevealNextLabel({
       }
       return t("reveal.nextGroupReveal");
     }
-    return t("reveal.showRoundScore");
-  }
-  if (revealPhase === "roundscore") {
-    if (shouldShowTotalsForRevealIndex(revealIndex)) return t("reveal.showTotalScore");
     if (revealIndex < totalQuestions - 1) return t("reveal.nextQuestion");
     return t("reveal.showFinaleIntro");
   }
@@ -2544,29 +2513,14 @@ function getRevealNextLabel({
   return t("reveal.next");
 }
 
-function formatRoundScoreExplain(
-  roundScores: Record<string, number>,
-  presenterName: string,
-): string {
-  const quips = roundScoreQuips[state.language] || roundScoreQuips.en;
-  const sorted = sortScores(state.game, roundScores);
-  const leaderName = sorted[0] ? sorted[0].player.name : presenterName;
-  const quip = quips[state.revealIndex % quips.length] || "";
-  const flavored = quip.replace("{name}", leaderName);
-  return `${t("reveal.roundScoreIntro")} ${flavored}`.trim();
-}
-
 function shouldShowTotalsForRevealIndex(revealIndex: number): boolean {
-  if (revealIndex < 1) return false;
-  if (revealIndex >= state.game.questions.length - 1) return true;
-  return (revealIndex + 1) % 2 === 0;
+  return revealIndex < state.game.questions.length - 2;
 }
 
 function getRevealPhaseKey(phase: RevealPhase): string {
   if (phase === "prompt") return "reveal.phasePrompt";
   if (phase === "question") return "reveal.phaseQuestion";
   if (phase === "reveal") return "reveal.phaseReveal";
-  if (phase === "roundscore") return "reveal.phaseRoundscore";
   if (phase === "totals") return "reveal.phaseTotals";
   if (phase === "finaleintro") return "reveal.phaseFinaleIntro";
   return "reveal.phaseEnd";
@@ -2576,7 +2530,6 @@ function getRevealStageHint(phase: RevealPhase): string {
   if (phase === "prompt") return t("reveal.stageHintPrompt");
   if (phase === "question") return t("reveal.stageHintQuestion");
   if (phase === "reveal") return t("reveal.stageHintReveal");
-  if (phase === "roundscore") return t("reveal.stageHintRoundscore");
   if (phase === "totals") return t("reveal.stageHintTotals");
   if (phase === "finaleintro") return t("reveal.stageHintFinaleIntro");
   return t("reveal.stageHintEnd");
@@ -2812,6 +2765,7 @@ function renderScoreChart(scoringMode: NormalizedScoringMode): void {
 
 function renderReveal(): void {
   el.revealSuspenseToggle.checked = state.revealSuspenseTop;
+  el.revealKeyHint.textContent = t("reveal.keyHint");
   const question = state.game.questions[state.revealIndex] || null;
   const questionText = question
     ? getQuestionTextValue(question) || t("labels.untitledQuestion")
@@ -2841,7 +2795,6 @@ function renderReveal(): void {
   el.revealFlavor.textContent = getRevealFlavor(consensusOrder, presenterRanking);
   el.revealPhaseLabel.textContent = t(getRevealPhaseKey(state.revealPhase));
   el.revealStageHint.textContent = getRevealStageHint(state.revealPhase);
-  const roundScores = question ? scoreRound(state.game, question.id, scoringMode) : {};
   const showTotals = shouldShowTotalsForRevealIndex(state.revealIndex);
   const totalScores = showTotals
     ? scoreTotalsThrough(state.game, state.revealIndex, scoringMode)
@@ -2849,7 +2802,6 @@ function renderReveal(): void {
   const maxSteps = getRevealMaxSteps(state.game, question ? question.id : null);
   if (state.revealStep > maxSteps) state.revealStep = maxSteps;
   renderRevealList(consensusOrder, presenterRanking, state.revealStep);
-  renderLeaderboard(el.roundLeaderboard, roundScores);
   if (showTotals) {
     renderLeaderboard(el.totalLeaderboard, totalScores);
   } else {
@@ -2860,7 +2812,6 @@ function renderReveal(): void {
   el.revealPrompt.classList.toggle("hidden", state.revealPhase !== "prompt");
   el.revealQuestionPanel.classList.toggle("hidden", state.revealPhase !== "question");
   el.revealRankingPanel.classList.toggle("hidden", state.revealPhase !== "reveal");
-  el.revealRoundScorePanel.classList.toggle("hidden", state.revealPhase !== "roundscore");
   el.revealTotalPanel.classList.toggle(
     "hidden",
     !showTotals || state.revealPhase !== "totals"
@@ -2878,7 +2829,6 @@ function renderReveal(): void {
     el.revealAwardsList.innerHTML = "";
   }
   renderScoringOptions();
-  el.roundScoreExplain.textContent = formatRoundScoreExplain(roundScores, presenterName);
   el.totalScoreExplain.textContent = `${t("reveal.totalScoreIntro")} ${
     scoringMode === "simple" ? t("scoring.totalSimple") : t("scoring.totalWeighted")
   }`;
@@ -2909,7 +2859,6 @@ function renderRevealList(
   });
   const activeStep =
     state.revealPhase === "reveal" ||
-    state.revealPhase === "roundscore" ||
     state.revealPhase === "totals"
       ? Math.min(revealStep, total * 2)
       : 0;
@@ -3328,6 +3277,28 @@ el.revealNext.addEventListener("click", () => {
   state.revealIndex = next.revealIndex;
   state.revealStep = next.revealStep;
   renderReveal();
+});
+
+window.addEventListener("keydown", (event) => {
+  if (state.view !== "reveal" || !state.revealFullscreenReady) return;
+  const target = event.target;
+  if (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    (target instanceof HTMLElement && target.isContentEditable)
+  ) {
+    return;
+  }
+  if (event.key === "ArrowRight" || event.key === " " || event.key === "Spacebar") {
+    event.preventDefault();
+    if (!el.revealNext.disabled) el.revealNext.click();
+    return;
+  }
+  if (event.key === "ArrowLeft" || event.key === "Backspace") {
+    event.preventDefault();
+    if (!el.revealPrev.disabled) el.revealPrev.click();
+  }
 });
 
 el.revealEnterFullscreen.addEventListener("click", async () => {

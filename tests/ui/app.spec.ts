@@ -242,7 +242,7 @@ test("compact player links and player codes still complete the full host flow", 
   await hostContext.close();
 });
 
-test("reveal pacing uses a finale drumroll and less frequent standings", async ({ page }) => {
+test("reveal pacing skips round tallies, avoids late subtotals, and supports keyboard navigation", async ({ page }) => {
   await page.addInitScript(({ storageKey, storedGame }) => {
     window.localStorage.setItem(storageKey, JSON.stringify(storedGame));
   }, {
@@ -256,11 +256,37 @@ test("reveal pacing uses a finale drumroll and less frequent standings", async (
       questions: [
         { id: "q1", text: "Best snack curator", presenterId: "p1" },
         { id: "q2", text: "Most likely to start a dance party", presenterId: "p2" },
+        { id: "q3", text: "Who starts the latest group chat drama", presenterId: "p3" },
+        { id: "q4", text: "Who would forget the snacks", presenterId: "p1" },
       ],
       submissions: {
-        p1: { playerId: "p1", byQuestion: { q1: ["p1", "p2", "p3"], q2: ["p2", "p1", "p3"] } },
-        p2: { playerId: "p2", byQuestion: { q1: ["p2", "p1", "p3"], q2: ["p2", "p3", "p1"] } },
-        p3: { playerId: "p3", byQuestion: { q1: ["p1", "p3", "p2"], q2: ["p3", "p2", "p1"] } },
+        p1: {
+          playerId: "p1",
+          byQuestion: {
+            q1: ["p1", "p2", "p3"],
+            q2: ["p2", "p1", "p3"],
+            q3: ["p3", "p1", "p2"],
+            q4: ["p2", "p3", "p1"],
+          },
+        },
+        p2: {
+          playerId: "p2",
+          byQuestion: {
+            q1: ["p2", "p1", "p3"],
+            q2: ["p2", "p3", "p1"],
+            q3: ["p3", "p2", "p1"],
+            q4: ["p1", "p3", "p2"],
+          },
+        },
+        p3: {
+          playerId: "p3",
+          byQuestion: {
+            q1: ["p1", "p3", "p2"],
+            q2: ["p3", "p2", "p1"],
+            q3: ["p2", "p3", "p1"],
+            q4: ["p3", "p1", "p2"],
+          },
+        },
       },
     }),
   });
@@ -269,26 +295,40 @@ test("reveal pacing uses a finale drumroll and less frequent standings", async (
   await expect(page.locator("#reveal-suspense-toggle")).toBeVisible();
   await page.click("#reveal-skip-fullscreen");
   await expect(page.locator("#reveal-phase-label")).toContainText("Round intro");
+  await expect(page.locator("#reveal-key-hint")).toContainText("[Left/Backspace]");
 
   for (let i = 0; i < 8; i += 1) {
-    await page.click("#reveal-next");
+    await page.keyboard.press("ArrowRight");
   }
-  await expect(page.locator("#reveal-roundscore-panel")).toBeVisible();
-  await expect(page.locator("#reveal-next")).toContainText("Show the next question");
+  await expect(page.locator("#reveal-total-panel")).toBeVisible();
+  await expect(page.locator("#reveal-phase-label")).toContainText("Standings");
+
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.locator("#reveal-ranking-panel")).toBeVisible();
+
+  await page.keyboard.press("Space");
+  await expect(page.locator("#reveal-total-panel")).toBeVisible();
 
   for (let i = 0; i < 9; i += 1) {
-    await page.click("#reveal-next");
+    await page.keyboard.press("ArrowRight");
   }
-  await expect(page.locator("#reveal-roundscore-panel")).toBeVisible();
-  await expect(page.locator("#reveal-next")).toContainText("Show the standings");
-
-  await page.click("#reveal-next");
   await expect(page.locator("#reveal-total-panel")).toBeVisible();
-  await expect(page.locator("#reveal-next")).toContainText("Start the final drumroll");
+  await expect(page.locator("#reveal-phase-label")).toContainText("Standings");
 
-  await page.click("#reveal-next");
+  for (let i = 0; i < 9; i += 1) {
+    await page.keyboard.press("ArrowRight");
+  }
+  await expect(page.locator("#reveal-total-panel")).toBeHidden();
+  await expect(page.locator("#reveal-phase-label")).not.toContainText("Standings");
+
+  for (let i = 0; i < 8; i += 1) {
+    await page.keyboard.press("ArrowRight");
+  }
   await expect(page.locator("#reveal-finaleintro-panel")).toBeVisible();
-  await page.click("#reveal-next");
+  await page.keyboard.press("Backspace");
+  await expect(page.locator("#reveal-ranking-panel")).toBeVisible();
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowRight");
   await expect(page.locator("#reveal-end-panel")).toBeVisible();
   await expect(page.locator("#reveal-end-panel")).toContainText("Mini awards");
 });
