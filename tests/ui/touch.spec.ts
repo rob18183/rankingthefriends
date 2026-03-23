@@ -35,10 +35,12 @@ test("reorders rankings through touch drag on mobile", async ({ page }) => {
   await page.selectOption("#player-select", "p1");
   await page.click("#player-confirm");
 
+  await expect(page.locator("#player-rank-hint")).toContainText("Drag a name");
   const rankingItems = page.locator("#player-questions .ranking-item");
   await expect(rankingItems).toHaveCount(3);
   await expect(rankingItems.nth(0)).toContainText("Laure");
   await expect(rankingItems.nth(2)).toContainText("Roy");
+  await expect(rankingItems.nth(0).locator(".drag-handle")).toBeVisible();
 
   const sourceBox = await rankingItems.nth(2).boundingBox();
   const targetBox = await rankingItems.nth(0).boundingBox();
@@ -46,65 +48,38 @@ test("reorders rankings through touch drag on mobile", async ({ page }) => {
     throw new Error("Missing ranking item bounds for touch drag test.");
   }
 
-  await page.evaluate(({ start, end }) => {
-    const source = document.querySelector('[data-player-id="p3"]');
-    if (!(source instanceof HTMLElement)) {
-      throw new Error("Could not find touch source element.");
-    }
+  const start = {
+    x: Math.round(sourceBox.x + sourceBox.width / 2),
+    y: Math.round(sourceBox.y + sourceBox.height / 2),
+  };
+  const end = {
+    x: Math.round(targetBox.x + targetBox.width / 2),
+    y: Math.round(targetBox.y + targetBox.height / 2),
+  };
 
-    const touchPoint = (x: number, y: number) =>
-      new Touch({
-        identifier: 1,
-        target: source,
-        clientX: x,
-        clientY: y,
-        pageX: x,
-        pageY: y,
-        radiusX: 4,
-        radiusY: 4,
-        force: 0.5,
-      });
-
-    const startTouch = touchPoint(start.x, start.y);
-    source.dispatchEvent(
-      new TouchEvent("touchstart", {
-        bubbles: true,
-        cancelable: true,
-        touches: [startTouch],
-        targetTouches: [startTouch],
-        changedTouches: [startTouch],
-      }),
-    );
-
-    const moveTouch = touchPoint(end.x, end.y);
-    source.dispatchEvent(
-      new TouchEvent("touchmove", {
-        bubbles: true,
-        cancelable: true,
-        touches: [moveTouch],
-        targetTouches: [moveTouch],
-        changedTouches: [moveTouch],
-      }),
-    );
-
-    source.dispatchEvent(
-      new TouchEvent("touchend", {
-        bubbles: true,
-        cancelable: true,
-        touches: [],
-        targetTouches: [],
-        changedTouches: [moveTouch],
-      }),
-    );
-  }, {
-    start: {
-      x: sourceBox.x + sourceBox.width / 2,
-      y: sourceBox.y + sourceBox.height / 2,
-    },
-    end: {
-      x: targetBox.x + targetBox.width / 2,
-      y: targetBox.y + targetBox.height / 2,
-    },
+  await rankingItems.nth(2).dispatchEvent("pointerdown", {
+    pointerType: "touch",
+    pointerId: 1,
+    isPrimary: true,
+    clientX: start.x,
+    clientY: start.y,
+    buttons: 1,
+  });
+  await rankingItems.nth(2).dispatchEvent("pointermove", {
+    pointerType: "touch",
+    pointerId: 1,
+    isPrimary: true,
+    clientX: end.x,
+    clientY: end.y,
+    buttons: 1,
+  });
+  await rankingItems.nth(2).dispatchEvent("pointerup", {
+    pointerType: "touch",
+    pointerId: 1,
+    isPrimary: true,
+    clientX: end.x,
+    clientY: end.y,
+    buttons: 0,
   });
 
   await expect(page.locator("#player-questions .ranking-item").nth(0)).toContainText("Roy");

@@ -232,6 +232,7 @@ const translations: Translations = {
     player: {
       title: "Player",
       description: "Pick your name, rank everyone for each question, then copy your secret code.",
+      rankHint: "Drag a name to reorder it, or use Up and Down for fine tuning.",
       selectName: "Select your name",
       start: "Start",
       nextQuestion: "Next question",
@@ -404,6 +405,7 @@ const translations: Translations = {
     player: {
       title: "Speler",
       description: "Kies je naam, rangschik iedereen per vraag en kopieer daarna je geheime code.",
+      rankHint: "Sleep een naam om opnieuw te rangschikken, of gebruik Omhoog en Omlaag voor precisie.",
       selectName: "Kies je naam",
       start: "Start",
       nextQuestion: "Volgende vraag",
@@ -922,6 +924,7 @@ const el = {
   playerStepQuestions: getEl<HTMLElement>("player-step-questions"),
   playerStepSubmit: getEl<HTMLElement>("player-step-submit"),
   playerProgress: getEl<HTMLElement>("player-progress"),
+  playerRankHint: getEl<HTMLElement>("player-rank-hint"),
   playerQuestions: getEl<HTMLElement>("player-questions"),
   nextQuestion: getEl<HTMLButtonElement>("next-question"),
   playerFinish: getEl<HTMLButtonElement>("player-finish"),
@@ -1521,6 +1524,7 @@ function renderPlayerStep(): void {
   el.playerStepIdentity.classList.toggle("hidden", state.playerForm.step !== "identity");
   el.playerStepQuestions.classList.toggle("hidden", state.playerForm.step !== "questions");
   el.playerStepSubmit.classList.toggle("hidden", state.playerForm.step !== "submit");
+  el.playerRankHint.textContent = t("player.rankHint");
 }
 
 function moveRankingToPosition(ranking: string[], draggedId: string, targetId: string): string[] {
@@ -1558,9 +1562,13 @@ function renderPlayerQuestions(count: number): void {
       li.className = "ranking-item";
       li.draggable = !state.playerForm.markedSubmitted;
       li.dataset.playerId = playerId;
+      const main = document.createElement("div");
+      main.className = "ranking-main";
       const nameSpan = document.createElement("span");
+      nameSpan.className = "ranking-name";
       nameSpan.textContent = `${position + 1}. ${player ? player.name : t("labels.unknown")}`;
       const dragSpan = document.createElement("span");
+      dragSpan.className = "drag-handle";
       dragSpan.textContent = t("labels.drag");
       const controls = document.createElement("div");
       controls.className = "rank-controls";
@@ -1578,11 +1586,13 @@ function renderPlayerQuestions(count: number): void {
       down.addEventListener("click", () => updateRanking(question.id, playerId, 1));
       controls.appendChild(up);
       controls.appendChild(down);
-      li.appendChild(nameSpan);
-      li.appendChild(dragSpan);
+      main.appendChild(nameSpan);
+      main.appendChild(dragSpan);
+      li.appendChild(main);
       li.appendChild(controls);
       if (!state.playerForm.markedSubmitted) {
         attachDragHandlers(li, question.id);
+        attachPointerHandlers(li, question.id);
         attachTouchHandlers(li, question.id);
       }
       list.appendChild(li);
@@ -1615,15 +1625,96 @@ function attachDragHandlers(li: HTMLLIElement, questionId: string): void {
   });
 }
 
-function findTouchDropTarget(touch: Touch): HTMLElement | null {
-  const candidate = document.elementFromPoint(touch.clientX, touch.clientY);
-  if (!(candidate instanceof HTMLElement)) return null;
-  return candidate.closest("[data-player-id]") as HTMLElement | null;
+function findDragTargetFromPoint(clientX: number, clientY: number, source: HTMLElement): HTMLElement | null {
+  const candidate = document.elementFromPoint(clientX, clientY);
+  if (candidate instanceof HTMLElement) {
+    const direct = candidate.closest("[data-player-id]") as HTMLElement | null;
+    if (direct && direct !== source) return direct;
+  }
+
+  const siblings = Array.from(source.parentElement?.querySelectorAll("[data-player-id]") ?? []).filter(
+    (node): node is HTMLElement => node instanceof HTMLElement && node !== source,
+  );
+  if (!siblings.length) return null;
+
+  let best: HTMLElement | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  siblings.forEach((node) => {
+    const rect = node.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const distance = Math.abs(centerY - clientY) + Math.abs(centerX - clientX) * 0.2;
+    if (distance < bestDistance) {
+      best = node;
+      bestDistance = distance;
+    }
+  });
+  return best;
+}
+
+function findTouchDropTarget(touch: Touch, source: HTMLElement): HTMLElement | null {
+  return findDragTargetFromPoint(touch.clientX, touch.clientY, source);
+}
+
+function attachPointerHandlers(li: HTMLLIElement, questionId: string): void {
+  let activePointerId: number | null = null;
+  let activeTarget: HTMLElement | null = null;
+
+  li.addEventListener("pointerdown", (event: PointerEvent) => {
+    if (event.pointerType !== "touch") return;
+    activePointerId = event.pointerId;
+    activeTarget = null;
+    li.classList.add("touch-dragging");
+    if (typeof navigator.vibrate === "function") {
+      navigator.vibrate(12);
+    }
+    if (typeof li.setPointerCapture === "function") {
+      li.setPointerCapture(event.pointerId);
+    }
+  });
+
+  li.addEventListener("pointermove", (event: PointerEvent) => {
+    if (activePointerId !== event.pointerId) return;
+    const target = findDragTargetFromPoint(event.clientX, event.clientY, li);
+    document.querySelectorAll(".ranking-item.touch-target").forEach((node) => {
+      if (node instanceof HTMLElement) node.classList.remove("touch-target");
+    });
+    activeTarget = target;
+    if (target) target.classList.add("touch-target");
+  });
+
+  li.addEventListener("pointerup", (event: PointerEvent) => {
+    if (activePointerId !== event.pointerId) return;
+    li.classList.remove("touch-dragging");
+    document.querySelectorAll(".ranking-item.touch-target").forEach((node) => {
+      if (node instanceof HTMLElement) node.classList.remove("touch-target");
+    });
+    const draggedId = li.dataset.playerId;
+    const targetId = activeTarget?.dataset.playerId;
+    activePointerId = null;
+    activeTarget = null;
+    if (!draggedId || !targetId || draggedId === targetId) return;
+    const ranking = state.playerForm.byQuestion[questionId];
+    updateRankingOrder(questionId, moveRankingToPosition(ranking, draggedId, targetId));
+  });
+
+  li.addEventListener("pointercancel", (event: PointerEvent) => {
+    if (activePointerId !== event.pointerId) return;
+    activePointerId = null;
+    activeTarget = null;
+    li.classList.remove("touch-dragging");
+    document.querySelectorAll(".ranking-item.touch-target").forEach((node) => {
+      if (node instanceof HTMLElement) node.classList.remove("touch-target");
+    });
+  });
 }
 
 function attachTouchHandlers(li: HTMLLIElement, questionId: string): void {
   li.addEventListener("touchstart", () => {
     li.classList.add("touch-dragging");
+    if (typeof navigator.vibrate === "function") {
+      navigator.vibrate(12);
+    }
   });
 
   li.addEventListener("touchmove", (event: TouchEvent) => {
@@ -1632,7 +1723,7 @@ function attachTouchHandlers(li: HTMLLIElement, questionId: string): void {
     document.querySelectorAll(".ranking-item.touch-target").forEach((node) => {
       if (node instanceof HTMLElement) node.classList.remove("touch-target");
     });
-    const target = findTouchDropTarget(event.touches[0]);
+    const target = findTouchDropTarget(event.touches[0], li);
     if (target && target !== li) target.classList.add("touch-target");
   });
 
@@ -1643,7 +1734,7 @@ function attachTouchHandlers(li: HTMLLIElement, questionId: string): void {
     });
     const touch = event.changedTouches[0];
     if (!touch) return;
-    const target = findTouchDropTarget(touch);
+    const target = findTouchDropTarget(touch, li);
     const draggedId = li.dataset.playerId;
     const targetId = target?.dataset.playerId;
     if (!draggedId || !targetId || draggedId === targetId) return;
