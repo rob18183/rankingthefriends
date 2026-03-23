@@ -10,8 +10,8 @@ function createStoredGame(overrides: Record<string, unknown> = {}) {
     createdAt: "2026-03-23T10:00:00.000Z",
     finalizedAt: "2026-03-23T10:05:00.000Z",
     players: [
-      { id: "p1", name: "Ava" },
-      { id: "p2", name: "Ben" },
+      { id: "p1", name: "Laure" },
+      { id: "p2", name: "Katy" },
     ],
     questions: [{ id: "q1", text: "Best snack curator", presenterId: "p1" }],
     submissions: {},
@@ -44,9 +44,9 @@ test("locks a game and shows a share link", async ({ page }) => {
     await page.click("#add-player");
   }
   const playerInputs = page.locator("#players-list input");
-  await playerInputs.nth(0).fill("Ava");
-  await playerInputs.nth(1).fill("Ben");
-  await playerInputs.nth(2).fill("Carla");
+  await playerInputs.nth(0).fill("Laure");
+  await playerInputs.nth(1).fill("Katy");
+  await playerInputs.nth(2).fill("Roy");
 
   for (let i = 0; i < 2; i += 1) {
     await page.click("#add-question");
@@ -91,9 +91,9 @@ test("host can remove a finalized no-show player and continue", async ({ page })
     storageKey: STORAGE_KEY,
     storedGame: createStoredGame({
       players: [
-        { id: "p1", name: "Ava" },
-        { id: "p2", name: "Ben" },
-        { id: "p3", name: "Cara" },
+        { id: "p1", name: "Laure" },
+        { id: "p2", name: "Katy" },
+        { id: "p3", name: "Marieke" },
       ],
       submissions: {
         p1: {

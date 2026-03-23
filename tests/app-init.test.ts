@@ -204,8 +204,8 @@ function createStoredGame(overrides: Record<string, unknown> = {}): string {
     createdAt: "2026-03-23T10:00:00.000Z",
     finalizedAt: "2026-03-23T10:05:00.000Z",
     players: [
-      { id: "p1", name: "Ava" },
-      { id: "p2", name: "Ben" },
+      { id: "p1", name: "Laure" },
+      { id: "p2", name: "Katy" },
     ],
     questions: [{ id: "q1", text: "Best snack curator", presenterId: "p1" }],
     submissions: {},
@@ -292,9 +292,9 @@ test("host can remove a finalized no-show player and continue with recalculated 
     storage: {
       [STORAGE_KEY]: createStoredGame({
         players: [
-          { id: "p1", name: "Ava" },
-          { id: "p2", name: "Ben" },
-          { id: "p3", name: "Cara" },
+          { id: "p1", name: "Laure" },
+          { id: "p2", name: "Katy" },
+          { id: "p3", name: "Marieke" },
         ],
         submissions: {
           p1: {
@@ -329,9 +329,9 @@ test("setup validation rejects duplicate names that differ only by case", async 
   document.getElementById("add-question").click();
 
   const playerRows = document.getElementById("players-list").children;
-  playerRows[0].children[0].value = "Ava";
+  playerRows[0].children[0].value = "Laure";
   playerRows[0].children[0].trigger("input");
-  playerRows[1].children[0].value = "ava";
+  playerRows[1].children[0].value = "laure";
   playerRows[1].children[0].trigger("input");
 
   const questionRows = document.getElementById("questions-list").children;
