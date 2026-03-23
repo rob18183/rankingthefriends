@@ -71,6 +71,42 @@ h3 {
   margin-top: 4px;
 }
 
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.overview-card {
+  margin-top: 18px;
+}
+
+.workflow-list {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 10px;
+}
+
+.workflow-list li {
+  display: grid;
+  gap: 4px;
+}
+
+.workflow-list.compact {
+  margin-top: 8px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #6d28d9;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .nav {
   display: flex;
   gap: 8px;
@@ -137,6 +173,13 @@ h3 {
 
 .demo-card .btn {
   margin-top: 8px;
+}
+
+.inset-card {
+  margin-top: 14px;
+  margin-bottom: 14px;
+  background: rgba(124, 58, 237, 0.05);
+  box-shadow: none;
 }
 
 .field {
@@ -215,6 +258,48 @@ h3 {
 
 .muted {
   color: var(--muted);
+}
+
+.checklist {
+  display: grid;
+  gap: 10px;
+}
+
+.checklist.compact {
+  margin: 8px 0 12px;
+}
+
+.checklist-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.checklist-row.done {
+  background: rgba(56, 179, 140, 0.12);
+  border-color: rgba(56, 179, 140, 0.18);
+}
+
+.checklist-badge {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(124, 58, 237, 0.12);
+  color: #6d28d9;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.checklist-row.done .checklist-badge {
+  background: rgba(56, 179, 140, 0.18);
+  color: #0f766e;
 }
 
 .code-box {
@@ -336,6 +421,53 @@ h3 {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.host-status-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.status-row {
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.status-row-empty {
+  justify-content: flex-start;
+}
+
+.status-name {
+  min-width: 0;
+  font-weight: 600;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status-badge.submitted {
+  background: rgba(56, 179, 140, 0.14);
+  color: #0f766e;
+}
+
+.status-badge.missing {
+  background: rgba(255, 107, 107, 0.14);
+  color: #b91c1c;
 }
 
 .reveal-question {
@@ -752,6 +884,9 @@ select {
   .drag-handle {
     font-size: 0.7rem;
     padding: 4px 9px;
+  }
+  .status-row {
+    align-items: flex-start;
   }
 }
 .nav.hidden {

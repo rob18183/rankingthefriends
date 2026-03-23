@@ -171,6 +171,7 @@ async function bootstrapApp(options: BootstrapOptions = {}): Promise<{
   globalThis.document = fakeDocument as unknown as Document;
   globalThis.window = {
     addEventListener: () => {},
+    confirm: () => true,
   } as unknown as Window & typeof globalThis;
   Object.defineProperty(globalThis, "navigator", {
     value: { language: "en-US" },
@@ -282,8 +283,9 @@ test("host import accepts payload-only lines and marks the matching player submi
   document.getElementById("import-submit").click();
   await flush();
 
-  const submissionStatus = document.getElementById("submission-status");
-  assert.match(submissionStatus.children[0]?.children[0]?.textContent ?? "", /Submitted/);
+  const submissionReceived = document.getElementById("submission-received");
+  assert.match(submissionReceived.children[0]?.children[0]?.textContent ?? "", /Laure/);
+  assert.match(submissionReceived.children[0]?.children[1]?.textContent ?? "", /Submitted/);
   assert.ok(document.getElementById("import-error").classList.contains("hidden"));
 });
 
@@ -311,12 +313,15 @@ test("host can remove a finalized no-show player and continue with recalculated 
   });
 
   document.getElementById("nav-host").click();
-  const submissionStatus = document.getElementById("submission-status");
-  submissionStatus.children[2].children[1].click();
+  const submissionMissing = document.getElementById("submission-missing");
+  const submissionReceived = document.getElementById("submission-received");
+  submissionMissing.children[0].children[2].click();
   await flush();
   await flush();
 
-  assert.equal(submissionStatus.children.length, 2);
+  assert.equal(submissionMissing.children.length, 1);
+  assert.match(submissionMissing.children[0].children[0]?.textContent ?? "", /Nobody is missing/);
+  assert.equal(submissionReceived.children.length, 2);
   assert.equal(document.getElementById("start-reveal").disabled, false);
   assert.match(document.getElementById("share-url").value, /#v=player&g=/);
 });

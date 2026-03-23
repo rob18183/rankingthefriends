@@ -25,9 +25,10 @@ test("navigates between views and toggles language", async ({ page }) => {
   await page.waitForSelector("#language-select");
   await expect(page.locator("#language-select option")).toHaveCount(2);
 
-  await expect(page.locator("#nav-setup")).toHaveText(/Setup/);
+  await expect(page.locator("#hero-start")).toHaveText(/Start a new game/);
+  await expect(page.locator("#nav-setup")).toHaveText(/Start/);
   await page.locator("#language-select").selectOption("nl");
-  await expect(page.locator("#nav-setup")).toHaveText(/Instellen/);
+  await expect(page.locator("#nav-setup")).toHaveText(/Start/);
 
   await page.click("#nav-host");
   await expect(page.locator("#view-host")).toBeVisible();
@@ -58,6 +59,7 @@ test("locks a game and shows a share link", async ({ page }) => {
   await page.click("#finalize-game");
   await expect(page.locator("#finalized-panel")).toBeVisible();
   await expect(page.locator("#share-url")).toHaveValue(/#v=player/);
+  await expect(page.locator("#finalized-panel")).toContainText(/What happens next/);
 });
 
 test("invalid shared links fail closed with a visible error", async ({ page }) => {
@@ -111,10 +113,39 @@ test("host can remove a finalized no-show player and continue", async ({ page })
   await page.goto("/");
   await page.click("#nav-host");
 
-  await expect(page.locator("#submission-status .list-row")).toHaveCount(3);
-  await page.locator("#submission-status .list-row").nth(2).locator("button").click();
+  await expect(page.locator("#submission-missing")).toContainText("Marieke");
+  await expect(page.locator("#submission-missing-copy")).toContainText("remove them before reveal");
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.locator("#submission-missing .status-row").nth(0).locator("button").click();
 
-  await expect(page.locator("#submission-status .list-row")).toHaveCount(2);
+  await expect(page.locator("#submission-missing")).toContainText("Nobody is missing");
+  await expect(page.locator("#submission-received .status-row")).toHaveCount(2);
   await expect(page.locator("#start-reveal")).toBeEnabled();
   await expect(page.locator("#share-url")).toHaveValue(/#v=player&g=/);
+});
+
+test("player end state clearly shows the send-back steps", async ({ page }) => {
+  await page.addInitScript(({ storageKey, storedGame }) => {
+    window.localStorage.setItem(storageKey, JSON.stringify(storedGame));
+  }, {
+    storageKey: STORAGE_KEY,
+    storedGame: createStoredGame({
+      players: [
+        { id: "p1", name: "Laure" },
+        { id: "p2", name: "Katy" },
+        { id: "p3", name: "Roy" },
+      ],
+      questions: [{ id: "q1", text: "Best snack curator", presenterId: "p1" }],
+    }),
+  });
+
+  await page.goto("/#v=player");
+  await page.selectOption("#player-select", "p1");
+  await page.click("#player-confirm");
+  await page.click("#player-finish");
+
+  await expect(page.locator("#player-step-submit")).toBeVisible();
+  await expect(page.locator("#player-step-submit")).toContainText("What to do now");
+  await expect(page.locator("#player-step-submit")).toContainText("Copy your player code");
+  await expect(page.locator("#player-step-submit")).toContainText("Send it back to the host");
 });

@@ -181,7 +181,15 @@ const translations: Translations = {
       subtitle:
         "A playful party game: pick juicy questions, rank each other, and reveal the funniest results round by round.",
       intro:
-        "No accounts, no logins. The host locks the game, players send a short secret code, and the host runs a big-screen style reveal.",
+        "Start as the host: create one player link, collect one player code from each friend, then open the big-screen reveal.",
+      startCta: "Start a new game",
+      howTitle: "How it works",
+      step1Title: "Create the player link",
+      step1Body: "Add names and questions, then create one link for everyone.",
+      step2Title: "Collect player codes",
+      step2Body: "Each friend ranks the group privately and sends one player code back.",
+      step3Title: "Open the reveal",
+      step3Body: "Create the reveal link and run the big-screen presentation.",
     },
     demo: {
       title: "Try the demo reveal",
@@ -190,17 +198,23 @@ const translations: Translations = {
       cta: "Open demo reveal",
     },
     nav: {
-      setup: "1. Setup",
-      host: "2. Collect Codes",
-      inspiration: "3. Inspiration",
+      setup: "1. Start",
+      host: "2. Collect",
+      inspiration: "3. Questions",
     },
     setup: {
       title: "Setup",
       description:
-        "Add players and questions. When you lock the game, the setup freezes and a share link is generated for your players.",
+        "Build the game in this order: add players, add questions, choose scoring, then create the player link.",
+      progressTitle: "Setup progress",
+      progressPlayers: "Add at least two players",
+      progressQuestions: "Add at least one question",
+      progressScoring: "Choose a scoring mode",
+      progressLink: "Create the player link",
       gameTitle: "Game title",
       gameTitlePlaceholder: "Friday night rankings",
       chooseScoring: "Choose scoring",
+      scoringHint: "The default is fine if you want to keep moving.",
       simpleTitle: "Simple (exact ranks)",
       simpleDesc: "Score 1 point for every player placed in the exact position (e.g. John is fourth).",
       simpleProsLabel: "Pros:",
@@ -220,46 +234,72 @@ const translations: Translations = {
       suggestedHint: "Pick from a quick starter list or jump to the inspiration page for more ideas.",
       suggestedAddTop: "Add top 10",
       suggestedMore: "More inspiration",
-      lockTitle: "Lock the game",
-      lockDescription: "Locking freezes players and questions, and generates the share link.",
-      lockButton: "Lock game & create link",
-      goHost: "Go to collect codes",
-      shareTitle: "Share link",
+      lockTitle: "Create player link",
+      lockDescription: "Once you are ready, create the player link for your group. Setup becomes read-only afterwards.",
+      lockButton: "Create player link",
+      goHost: "Go to player codes",
+      shareTitle: "Player link",
       shareCopy: "Copy",
-      shareHint: "Send this link to each player.",
-      gameCode: "Game code (backup)",
+      shareHint: "Send this player link to everyone in the group.",
+      afterLockTitle: "What happens next",
+      afterLockStep1: "Send the player link to your group.",
+      afterLockStep2: "Each friend sends back one player code.",
+      afterLockStep3: "When everyone is in, create the reveal link.",
+      gameCode: "Player link backup code",
     },
     player: {
       title: "Player",
-      description: "Pick your name, rank everyone for each question, then copy your secret code.",
+      description: "Choose your name, rank everyone privately, then send one player code back to the host.",
+      joiningGame: "Joining: {game}",
       rankHint: "Drag a name to reorder it, or use Up and Down for fine tuning.",
       selectName: "Select your name",
       start: "Start",
       nextQuestion: "Next question",
-      finish: "Finish & get code",
+      finish: "Show my player code",
       thanks: "Thanks! Send this to your host",
-      submitHint: "Copy your secret code below and send it via WhatsApp or email.",
-      secretCode: "Your secret code",
-      copyCode: "Copy code",
+      submitHint: "Copy this player code and send it back to the host in WhatsApp, Signal, or email.",
+      doneTitle: "What to do now",
+      doneStep1: "Copy your player code.",
+      doneStep2: "Send it back to the host.",
+      doneStep3: "You are done for now.",
+      secretCode: "Your player code",
+      copyCode: "Copy player code",
     },
     host: {
       title: "Collect Codes",
-      description: "Paste each player's code below (one per line). When all are in, start the reveal.",
-      pasteTitle: "Paste codes",
-      pasteHint: "Each line: code",
+      description: "As player codes come in, paste them here. When everyone is in, create the reveal link.",
+      checklistTitle: "Host checklist",
+      checklistStep1: "Paste each player code as it comes in.",
+      checklistStep2: "Keep an eye on who is still missing.",
+      checklistStep3: "If someone drops out, remove them before reveal.",
+      summary: "{received} of {total} player codes received.",
+      waitingTitle: "Waiting on",
+      receivedTitle: "Received",
+      waitingMessage: "Still waiting on {count} player(s). If someone dropped out, remove them before reveal.",
+      readyMessage: "Everyone is in. Create the reveal link when you are ready.",
+      noneWaiting: "Nobody is missing.",
+      noneReceived: "No player codes yet.",
+      pasteTitle: "Add player codes",
+      pasteHint: "Paste one player code per line.",
       pastePlaceholder: "abc123\ndef456",
-      import: "Import lines",
+      import: "Import player codes",
       status: "Submission status",
-      startReveal: "Generate game night link",
-      revealTitle: "Game night link",
-      revealHint: "Open this on the big screen, or share as a QR code.",
-      openReveal: "Open reveal",
+      startReveal: "Create reveal link",
+      removeNoShow: "Remove no-show",
+      removePlayer: "Remove player",
+      removeConfirm: "Remove {name} from the game and recalculate the rankings?",
+      revealTitle: "Reveal link",
+      revealHint: "Open this on the big screen. The QR code is handy if you want to move it to another device.",
+      openReveal: "Open big-screen reveal",
     },
     reveal: {
       pageTitle: "Ranking your Friend - {game}",
       defaultGameTitle: "Game Night",
-      readyTitle: "Ready to present?",
-      readyHint: "Go fullscreen for the best vibe.",
+      readyTitle: "Reveal is ready",
+      readyHint: "You are switching into big-screen presentation mode.",
+      readyCheck1: "All player codes are in.",
+      readyCheck2: "This screen is for the group reveal.",
+      readyCheck3: "Fullscreen is recommended.",
       fullscreen: "Go fullscreen",
       skipFullscreen: "Continue without fullscreen",
       promptTitle: "{presenter}, come forward",
@@ -354,7 +394,15 @@ const translations: Translations = {
       subtitle:
         "Een speels partyspel: kies sappige vragen, rangschik elkaar en onthul de grappigste resultaten ronde na ronde.",
       intro:
-        "Geen accounts, geen logins. De host vergrendelt het spel, spelers sturen een korte geheime code en de host toont de onthulling op groot scherm.",
+        "Begin als host: maak één spelerlink, verzamel van iedereen één spelercode en open daarna de reveal op groot scherm.",
+      startCta: "Start een nieuw spel",
+      howTitle: "Hoe het werkt",
+      step1Title: "Maak de spelerlink",
+      step1Body: "Voeg namen en vragen toe en maak daarna één link voor iedereen.",
+      step2Title: "Verzamel spelercodes",
+      step2Body: "Iedere vriend rangschikt de groep privé en stuurt één spelercode terug.",
+      step3Title: "Open de reveal",
+      step3Body: "Maak de reveallink en start de presentatie op groot scherm.",
     },
     demo: {
       title: "Probeer de demo-reveal",
@@ -363,17 +411,23 @@ const translations: Translations = {
       cta: "Open demo-reveal",
     },
     nav: {
-      setup: "1. Instellen",
-      host: "2. Codes verzamelen",
-      inspiration: "3. Inspiratie",
+      setup: "1. Start",
+      host: "2. Verzamelen",
+      inspiration: "3. Vragen",
     },
     setup: {
       title: "Instellen",
       description:
-        "Voeg spelers en vragen toe. Wanneer je het spel vergrendelt, wordt de setup bevroren en wordt er een deel-link voor spelers gemaakt.",
+        "Bouw het spel in deze volgorde: voeg spelers toe, voeg vragen toe, kies scoring en maak daarna de spelerlink.",
+      progressTitle: "Voortgang setup",
+      progressPlayers: "Voeg minstens twee spelers toe",
+      progressQuestions: "Voeg minstens één vraag toe",
+      progressScoring: "Kies een scoringmodus",
+      progressLink: "Maak de spelerlink",
       gameTitle: "Speltitel",
       gameTitlePlaceholder: "Vrijdagavond ranglijst",
       chooseScoring: "Kies scoring",
+      scoringHint: "De standaardoptie is prima als je snel door wilt.",
       simpleTitle: "Simpel (exacte posities)",
       simpleDesc: "Scoor 1 punt voor elke speler op de juiste plek (bijv. John is vierde).",
       simpleProsLabel: "Voordelen:",
@@ -393,47 +447,73 @@ const translations: Translations = {
       suggestedHint: "Kies uit een snelle startlijst of ga naar de inspiratiepagina voor meer ideeën.",
       suggestedAddTop: "Top 10 toevoegen",
       suggestedMore: "Meer inspiratie",
-      lockTitle: "Spel vergrendelen",
-      lockDescription: "Vergrendelen bevriest spelers en vragen en maakt de deel-link aan.",
-      lockButton: "Spel vergrendelen & link maken",
-      goHost: "Ga naar codes verzamelen",
-      shareTitle: "Deel-link",
+      lockTitle: "Maak spelerlink",
+      lockDescription: "Zodra je klaar bent, maak je de spelerlink voor je groep. Daarna is de setup read-only.",
+      lockButton: "Maak spelerlink",
+      goHost: "Ga naar spelercodes",
+      shareTitle: "Spelerlink",
       shareCopy: "Kopiëren",
-      shareHint: "Stuur deze link naar elke speler.",
-      gameCode: "Spelcode (back-up)",
+      shareHint: "Stuur deze spelerlink naar iedereen in de groep.",
+      afterLockTitle: "Wat gebeurt hierna",
+      afterLockStep1: "Stuur de spelerlink naar je groep.",
+      afterLockStep2: "Iedere vriend stuurt één spelercode terug.",
+      afterLockStep3: "Zodra alles binnen is, maak je de reveallink.",
+      gameCode: "Back-upcode voor spelerlink",
     },
     player: {
       title: "Speler",
-      description: "Kies je naam, rangschik iedereen per vraag en kopieer daarna je geheime code.",
+      description: "Kies je naam, rangschik iedereen privé en stuur daarna één spelercode terug naar de host.",
+      joiningGame: "Je doet mee aan: {game}",
       rankHint: "Sleep een naam om opnieuw te rangschikken, of gebruik Omhoog en Omlaag voor precisie.",
       selectName: "Kies je naam",
       start: "Start",
       nextQuestion: "Volgende vraag",
-      finish: "Afronden & code krijgen",
+      finish: "Toon mijn spelercode",
       thanks: "Bedankt! Stuur dit naar je host",
-      submitHint: "Kopieer je geheime code hieronder en verstuur via WhatsApp of e-mail.",
-      secretCode: "Jouw geheime code",
-      copyCode: "Code kopiëren",
+      submitHint: "Kopieer deze spelercode en stuur hem terug naar de host via WhatsApp, Signal of e-mail.",
+      doneTitle: "Wat doe je nu",
+      doneStep1: "Kopieer je spelercode.",
+      doneStep2: "Stuur hem terug naar de host.",
+      doneStep3: "Voor nu ben je klaar.",
+      secretCode: "Jouw spelercode",
+      copyCode: "Spelercode kopiëren",
     },
     host: {
       title: "Codes verzamelen",
       description:
-        "Plak de code van elke speler hieronder (één per regel). Start de reveal zodra alles binnen is.",
-      pasteTitle: "Codes plakken",
-      pasteHint: "Elke regel: code",
+        "Terwijl spelercodes binnenkomen, plak je ze hier. Zodra iedereen binnen is, maak je de reveallink.",
+      checklistTitle: "Checklist voor de host",
+      checklistStep1: "Plak elke spelercode zodra die binnenkomt.",
+      checklistStep2: "Houd in de gaten wie nog mist.",
+      checklistStep3: "Als iemand afhaakt, verwijder die persoon dan voor de reveal.",
+      summary: "{received} van {total} spelercodes ontvangen.",
+      waitingTitle: "Nog te gaan",
+      receivedTitle: "Binnen",
+      waitingMessage: "Je wacht nog op {count} spelercode(s). Als iemand afhaakt, verwijder die persoon dan voor de reveal.",
+      readyMessage: "Iedereen is binnen. Maak de reveallink zodra je klaar bent.",
+      noneWaiting: "Niemand ontbreekt.",
+      noneReceived: "Nog geen spelercodes binnen.",
+      pasteTitle: "Voeg spelercodes toe",
+      pasteHint: "Plak één spelercode per regel.",
       pastePlaceholder: "abc123\ndef456",
-      import: "Regels importeren",
+      import: "Spelercodes importeren",
       status: "Inzendingenstatus",
-      startReveal: "Spelavond-link maken",
-      revealTitle: "Spelavond-link",
-      revealHint: "Open dit op het grote scherm of deel als QR-code.",
-      openReveal: "Reveal openen",
+      startReveal: "Maak reveallink",
+      removeNoShow: "Verwijder afwezige",
+      removePlayer: "Verwijder speler",
+      removeConfirm: "Verwijder {name} uit het spel en bereken de ranglijsten opnieuw?",
+      revealTitle: "Reveallink",
+      revealHint: "Open dit op het grote scherm. De QR-code is handig als je wilt wisselen van apparaat.",
+      openReveal: "Open reveal op groot scherm",
     },
     reveal: {
       pageTitle: "Ranking your Friend - {game}",
       defaultGameTitle: "Spelavond",
-      readyTitle: "Klaar om te presenteren?",
-      readyHint: "Ga fullscreen voor de beste vibe.",
+      readyTitle: "Reveal staat klaar",
+      readyHint: "Je schakelt nu over naar de presentatiemodus op groot scherm.",
+      readyCheck1: "Alle spelercodes zijn binnen.",
+      readyCheck2: "Dit scherm is voor de groepsreveal.",
+      readyCheck3: "Fullscreen is aanbevolen.",
       fullscreen: "Ga fullscreen",
       skipFullscreen: "Ga door zonder fullscreen",
       promptTitle: "{presenter}, kom naar voren",
@@ -890,6 +970,7 @@ const state: AppState = {
 
 const el = {
   appHeader: getEl<HTMLElement>("app-header"),
+  heroStart: getEl<HTMLButtonElement>("hero-start"),
   navBar: getEl<HTMLElement>("nav-bar"),
   navSetup: getEl<HTMLElement>("nav-setup"),
   navHost: getEl<HTMLElement>("nav-host"),
@@ -902,6 +983,7 @@ const el = {
   viewReveal: getEl<HTMLElement>("view-reveal"),
   viewInspiration: getEl<HTMLElement>("view-inspiration"),
   gameTitle: getEl<HTMLInputElement>("game-title"),
+  setupChecklist: getEl<HTMLElement>("setup-checklist"),
   demoRevealLink: getEl<HTMLAnchorElement>("demo-reveal-link"),
   playersList: getEl<HTMLElement>("players-list"),
   addPlayer: getEl<HTMLButtonElement>("add-player"),
@@ -923,6 +1005,7 @@ const el = {
   playerStepIdentity: getEl<HTMLElement>("player-step-identity"),
   playerStepQuestions: getEl<HTMLElement>("player-step-questions"),
   playerStepSubmit: getEl<HTMLElement>("player-step-submit"),
+  playerGameTitle: getEl<HTMLElement>("player-game-title"),
   playerProgress: getEl<HTMLElement>("player-progress"),
   playerRankHint: getEl<HTMLElement>("player-rank-hint"),
   playerQuestions: getEl<HTMLElement>("player-questions"),
@@ -935,7 +1018,10 @@ const el = {
   importText: getEl<HTMLTextAreaElement>("import-text"),
   importSubmit: getEl<HTMLButtonElement>("import-submit"),
   importError: getEl<HTMLElement>("import-error"),
-  submissionStatus: getEl<HTMLElement>("submission-status"),
+  submissionSummary: getEl<HTMLElement>("submission-summary"),
+  submissionMissingCopy: getEl<HTMLElement>("submission-missing-copy"),
+  submissionMissing: getEl<HTMLElement>("submission-missing"),
+  submissionReceived: getEl<HTMLElement>("submission-received"),
   startReveal: getEl<HTMLButtonElement>("start-reveal"),
   revealLinkPanel: getEl<HTMLElement>("reveal-link-panel"),
   revealUrl: getEl<HTMLInputElement>("reveal-url"),
@@ -1238,6 +1324,11 @@ function renderAppError(): void {
   hideError(el.appError);
 }
 
+function getDisplayGameTitle(): string {
+  const rawTitle = state.game.title ? state.game.title.trim() : "";
+  return rawTitle || t("reveal.defaultGameTitle");
+}
+
 function updateShareUrl(encoded: string): void {
   const base = location.href.split("#")[0];
   const params = new URLSearchParams();
@@ -1356,6 +1447,42 @@ function renderPlayersList(): void {
     row.appendChild(input);
     row.appendChild(remove);
     el.playersList.appendChild(row);
+  });
+}
+
+function renderSetupChecklist(): void {
+  el.setupChecklist.innerHTML = "";
+  const items = [
+    {
+      done: state.game.players.map((player) => player.name.trim()).filter(Boolean).length >= 2,
+      label: t("setup.progressPlayers"),
+    },
+    {
+      done: state.game.questions.map((question) => getQuestionTextValue(question).trim()).filter(Boolean).length >= 1,
+      label: t("setup.progressQuestions"),
+    },
+    {
+      done: Boolean(state.game.settings?.scoring),
+      label: t("setup.progressScoring"),
+    },
+    {
+      done: Boolean(state.game.finalizedAt),
+      label: t("setup.progressLink"),
+    },
+  ];
+
+  items.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "checklist-row";
+    row.classList.add(item.done ? "done" : "todo");
+    const badge = document.createElement("span");
+    badge.className = "checklist-badge";
+    badge.textContent = item.done ? "✓" : "•";
+    const text = document.createElement("span");
+    text.textContent = item.label;
+    row.appendChild(badge);
+    row.appendChild(text);
+    el.setupChecklist.appendChild(row);
   });
 }
 
@@ -1525,6 +1652,7 @@ function renderPlayerStep(): void {
   el.playerStepQuestions.classList.toggle("hidden", state.playerForm.step !== "questions");
   el.playerStepSubmit.classList.toggle("hidden", state.playerForm.step !== "submit");
   el.playerRankHint.textContent = t("player.rankHint");
+  el.playerGameTitle.textContent = t("player.joiningGame", { game: getDisplayGameTitle() });
 }
 
 function moveRankingToPosition(ranking: string[], draggedId: string, targetId: string): string[] {
@@ -1847,26 +1975,71 @@ function parseImportLine(line: string): { identifier: string | null; payload: st
 }
 
 function renderSubmissionStatus(): void {
-  el.submissionStatus.innerHTML = "";
-  state.game.players.forEach((player) => {
+  el.submissionMissing.innerHTML = "";
+  el.submissionReceived.innerHTML = "";
+  const received = state.game.players.filter((player) => state.game.submissions[player.id]).length;
+  const missingPlayers = state.game.players.filter((player) => !state.game.submissions[player.id]);
+  const receivedPlayers = state.game.players.filter((player) => state.game.submissions[player.id]);
+  el.submissionSummary.textContent = t("host.summary", {
+    received,
+    total: state.game.players.length,
+  });
+
+  el.submissionMissingCopy.textContent =
+    missingPlayers.length > 0
+      ? t("host.waitingMessage", { count: missingPlayers.length })
+      : t("host.readyMessage");
+
+  const appendEmptyState = (container: HTMLElement, label: string) => {
     const row = document.createElement("div");
     row.className = "list-row";
+    row.classList.add("status-row", "status-row-empty");
     const status = document.createElement("span");
-    status.textContent = `${player.name || t("labels.unnamed")} - ${
-      state.game.submissions[player.id] ? t("labels.submitted") : t("labels.missing")
-    }`;
+    status.className = "status-name muted";
+    status.textContent = label;
     row.appendChild(status);
+    container.appendChild(row);
+  };
+
+  const appendPlayerStatus = (container: HTMLElement, player: Player, submitted: boolean) => {
+    const row = document.createElement("div");
+    row.className = "list-row status-row";
+    const status = document.createElement("span");
+    status.className = "status-name";
+    status.textContent = player.name || t("labels.unnamed");
+    const badge = document.createElement("span");
+    badge.className = `status-badge ${submitted ? "submitted" : "missing"}`;
+    badge.textContent = submitted ? t("labels.submitted") : t("labels.missing");
+    row.appendChild(status);
+    row.appendChild(badge);
     const remove = document.createElement("button");
     remove.className = "btn";
     remove.type = "button";
-    remove.textContent = t("labels.remove");
+    remove.textContent = submitted ? t("host.removePlayer") : t("host.removeNoShow");
     remove.disabled = state.game.players.length <= 2;
     remove.addEventListener("click", async () => {
+      const confirmed = window.confirm(
+        t("host.removeConfirm", { name: player.name || t("labels.unnamed") }),
+      );
+      if (!confirmed) return;
       await removePlayerAndRecalculate(player.id);
     });
     row.appendChild(remove);
-    el.submissionStatus.appendChild(row);
-  });
+    container.appendChild(row);
+  };
+
+  if (missingPlayers.length === 0) {
+    appendEmptyState(el.submissionMissing, t("host.noneWaiting"));
+  } else {
+    missingPlayers.forEach((player) => appendPlayerStatus(el.submissionMissing, player, false));
+  }
+
+  if (receivedPlayers.length === 0) {
+    appendEmptyState(el.submissionReceived, t("host.noneReceived"));
+  } else {
+    receivedPlayers.forEach((player) => appendPlayerStatus(el.submissionReceived, player, true));
+  }
+
   el.startReveal.disabled = !allSubmissionsIn();
 }
 
@@ -2384,6 +2557,7 @@ function renderAll(): void {
   renderAppError();
   el.gameTitle.value = state.game.title || "";
   el.gameTitle.disabled = Boolean(state.game.finalizedAt);
+  renderSetupChecklist();
   renderPlayersList();
   renderQuestionsList();
   renderSuggestedQuestions();
@@ -2407,6 +2581,14 @@ function renderAll(): void {
   }
   renderPlayerStep();
 }
+
+el.heroStart.addEventListener("click", () => {
+  setView("setup");
+  if (typeof el.gameTitle.scrollIntoView === "function") {
+    el.gameTitle.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  el.gameTitle.focus();
+});
 
 el.navSetup.addEventListener("click", () => setView("setup"));
 el.navHost.addEventListener("click", () => setView("host"));

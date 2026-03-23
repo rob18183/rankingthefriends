@@ -18,6 +18,32 @@
           No accounts, no logins. The host locks the game, players send a short secret code,
           and the host runs a big-screen style reveal.
         </p>
+        <div class="hero-actions">
+          <button id="hero-start" class="btn primary" data-i18n="app.startCta">Start a new game</button>
+        </div>
+        <div class="card overview-card">
+          <h2 data-i18n="app.howTitle">How it works</h2>
+          <ol class="workflow-list">
+            <li>
+              <strong data-i18n="app.step1Title">Create the player link</strong>
+              <span class="muted" data-i18n="app.step1Body">
+                Add names and questions, then create one link for everyone.
+              </span>
+            </li>
+            <li>
+              <strong data-i18n="app.step2Title">Collect player codes</strong>
+              <span class="muted" data-i18n="app.step2Body">
+                Each friend ranks the group privately and sends one player code back.
+              </span>
+            </li>
+            <li>
+              <strong data-i18n="app.step3Title">Open the reveal</strong>
+              <span class="muted" data-i18n="app.step3Body">
+                Generate the reveal link and run the big-screen presentation.
+              </span>
+            </li>
+          </ol>
+        </div>
         <div class="card demo-card">
           <h2 data-i18n="demo.title">Try the demo reveal</h2>
           <p class="muted" data-i18n="demo.description">
@@ -55,6 +81,10 @@
           is generated for your players.
         </p>
         <div class="card">
+          <h3 data-i18n="setup.progressTitle">Setup progress</h3>
+          <div id="setup-checklist" class="checklist"></div>
+        </div>
+        <div class="card">
           <label class="field">
             <span data-i18n="setup.gameTitle">Game title</span>
             <input
@@ -80,8 +110,31 @@
         </div>
 
         <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 data-i18n="setup.suggestedTitle">Suggested questions</h3>
+              <p class="muted" data-i18n="setup.suggestedHint">
+                Pick from a quick starter list or jump to the inspiration page for more ideas.
+              </p>
+            </div>
+            <div class="actions">
+              <button id="add-top-questions" class="btn" data-i18n="setup.suggestedAddTop">
+                Add top 10
+              </button>
+              <button id="open-inspiration" class="btn" data-i18n="setup.suggestedMore">
+                More inspiration
+              </button>
+            </div>
+          </div>
+          <div id="suggested-questions" class="pill-grid"></div>
+        </div>
+
+        <div class="card">
           <div class="reveal-scoring">
             <h3 data-i18n="setup.chooseScoring">Choose scoring</h3>
+            <p class="muted" data-i18n="setup.scoringHint">
+              You can keep the default and come back to this later if you want.
+            </p>
             <div class="scoring-options">
               <label class="scoring-option" for="scoring-simple">
                 <input id="scoring-simple" type="radio" name="scoring" value="simple" />
@@ -138,27 +191,7 @@
         </div>
 
         <div class="card">
-          <div class="card-header">
-            <div>
-              <h3 data-i18n="setup.suggestedTitle">Suggested questions</h3>
-              <p class="muted" data-i18n="setup.suggestedHint">
-                Pick from a quick starter list or jump to the inspiration page for more ideas.
-              </p>
-            </div>
-            <div class="actions">
-              <button id="add-top-questions" class="btn" data-i18n="setup.suggestedAddTop">
-                Add top 10
-              </button>
-              <button id="open-inspiration" class="btn" data-i18n="setup.suggestedMore">
-                More inspiration
-              </button>
-            </div>
-          </div>
-          <div id="suggested-questions" class="pill-grid"></div>
-        </div>
-
-        <div class="card">
-          <h3 data-i18n="setup.lockTitle">Lock the game</h3>
+          <h3 data-i18n="setup.lockTitle">Create player link</h3>
           <p class="muted" data-i18n="setup.lockDescription">
             Locking freezes players and questions, and generates the share link.
           </p>
@@ -172,19 +205,28 @@
         </div>
 
         <div id="finalized-panel" class="card hidden">
-          <h3 data-i18n="setup.shareTitle">Share link</h3>
+          <h3 data-i18n="setup.shareTitle">Player link</h3>
           <div class="share-row">
             <input id="share-url" type="text" readonly />
             <button id="copy-share" class="btn" data-i18n="labels.copy">Copy</button>
           </div>
           <p class="muted" data-i18n="setup.shareHint">Send this link to each player.</p>
-          <h4 data-i18n="setup.gameCode">Game code (backup)</h4>
+          <div class="card inset-card">
+            <h4 data-i18n="setup.afterLockTitle">What happens next</h4>
+            <ol class="workflow-list compact">
+              <li data-i18n="setup.afterLockStep1">Send the player link to your group.</li>
+              <li data-i18n="setup.afterLockStep2">Each friend sends back one player code.</li>
+              <li data-i18n="setup.afterLockStep3">When everyone is in, create the reveal link.</li>
+            </ol>
+          </div>
+          <h4 data-i18n="setup.gameCode">Player link backup code</h4>
           <textarea id="game-code" class="code-box" readonly></textarea>
         </div>
       </section>
 
       <section id="view-player" class="view hidden">
         <h2 data-i18n="player.title">Player</h2>
+        <p id="player-game-title" class="eyebrow"></p>
         <p class="muted" data-i18n="player.description">
           Pick your name, rank everyone for each question, then copy your secret code.
         </p>
@@ -232,6 +274,14 @@
               </button>
             </div>
           </div>
+          <div class="card inset-card">
+            <h4 data-i18n="player.doneTitle">What to do now</h4>
+            <ol class="workflow-list compact">
+              <li data-i18n="player.doneStep1">Copy your player code.</li>
+              <li data-i18n="player.doneStep2">Send it back to the host.</li>
+              <li data-i18n="player.doneStep3">You are done for now.</li>
+            </ol>
+          </div>
           <p id="player-error" class="error hidden"></p>
         </div>
       </section>
@@ -241,6 +291,14 @@
         <p class="muted" data-i18n="host.description">
           Paste each player's code below (one per line). When all are in, start the reveal.
         </p>
+        <div class="card inset-card">
+          <h3 data-i18n="host.checklistTitle">Host checklist</h3>
+          <ol class="workflow-list compact">
+            <li data-i18n="host.checklistStep1">Paste each player code as it comes in.</li>
+            <li data-i18n="host.checklistStep2">Keep an eye on who is still missing.</li>
+            <li data-i18n="host.checklistStep3">If someone drops out, remove them before reveal.</li>
+          </ol>
+        </div>
         <div class="card">
           <h3 data-i18n="host.pasteTitle">Paste codes</h3>
           <p class="muted">
@@ -261,7 +319,18 @@
         </div>
         <div class="card">
           <h3 data-i18n="host.status">Submission status</h3>
-          <div id="submission-status" class="list"></div>
+          <p id="submission-summary" class="muted"></p>
+          <p id="submission-missing-copy" class="muted"></p>
+          <div class="host-status-grid">
+            <div>
+              <p class="eyebrow" data-i18n="host.waitingTitle">Waiting on</p>
+              <div id="submission-missing" class="list"></div>
+            </div>
+            <div>
+              <p class="eyebrow" data-i18n="host.receivedTitle">Received</p>
+              <div id="submission-received" class="list"></div>
+            </div>
+          </div>
         </div>
         <div class="actions">
           <button id="start-reveal" class="btn primary" data-i18n="host.startReveal" disabled>
@@ -294,6 +363,11 @@
         <div id="reveal-fullscreen" class="card reveal-fullscreen">
           <h3 data-i18n="reveal.readyTitle">Ready to present?</h3>
           <p class="muted" data-i18n="reveal.readyHint">Go fullscreen for the best vibe.</p>
+          <ul class="checklist compact">
+            <li data-i18n="reveal.readyCheck1">All player codes are in.</li>
+            <li data-i18n="reveal.readyCheck2">This screen is for the big reveal.</li>
+            <li data-i18n="reveal.readyCheck3">Fullscreen is recommended.</li>
+          </ul>
           <button id="reveal-enter-fullscreen" class="btn primary" data-i18n="reveal.fullscreen">
             Go fullscreen
           </button>
