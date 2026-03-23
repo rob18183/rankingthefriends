@@ -1,117 +1,113 @@
-## Ranking Your Friends - Detailed Spec (minimal, URL-hash first)
+## Ranking Your Friends - Detailed Spec
 
 ### 1) Goals
 - A simple, account-free web app for a party game night.
-- Facilitator sets up players + questions, then shares a URL-hash link to players.
-- Players submit rankings via a short secret code; host generates a reveal link + QR.
+- The host sets up players and questions, then shares a player link.
+- Players submit rankings via a short player code.
+- The host imports those codes and generates a reveal link plus QR.
 
 ### 2) Roles
-- **Facilitator**: creates a game, shares links, collects player codes, presents results.
-- **Player**: opens the shared link, selects their name, ranks all players for each question, copies a code.
+- **Host**: creates a game, shares links, collects player codes, presents results.
+- **Player**: opens the shared link, selects their name, ranks all players for each question, and copies a code.
 
 ### 3) Core game rules
-- Questions: any count (selected/entered by facilitator).
-- For each question, **every player ranks all players** (full ranking, no ties, no skips).
+- Questions: any count selected or entered by the host.
+- For each question, every player ranks all players with a full ordering, no ties, and no skips.
 - Scoring: **simple** or **weighted**, based on how close each player's ranking is to the group consensus.
-- Reveal: **slideshow** per question (prompt → question → ranking → round score → totals).
-- Names are **select-only** (no free text) to avoid mismatches.
+- Reveal: slideshow per question with prompt, question, ranking reveal, and occasional subtotal checkpoints before the finale.
+- Names are select-only to avoid mismatches.
 
 ### 4) Primary flows
-#### 4.1 Facilitator - Create & Lock
-1. Create game (title, players list, questions list).
-2. Facilitator **locks** the game (setup becomes read-only).
-3. App encodes the game setup into the **URL hash** and writes a localStorage backup.
-4. Facilitator shares link with friends.
 
-#### 4.2 Player - Fill & Send Code
-1. Player opens the link.
-2. Player selects their name (locked to a single player id).
-3. For each question, player ranks all players (drag-and-drop list).
-4. Player copies a **secret code** line in the form `name:code` and sends it to the host.
+#### 4.1 Host - Create and lock
+1. Create a game with title, players, and questions.
+2. Lock the game so setup becomes read-only.
+3. The app encodes the setup into the URL hash and writes a localStorage backup.
+4. The host shares the player link with friends.
 
-#### 4.3 Facilitator - Collect & Present
-1. Facilitator loads their original setup (from URL hash or localStorage).
-2. Pastes each player’s `name:code` line.
-3. When all players have submitted, facilitator generates a **Game Night link** for reveal.
-4. Reveal runs as a guided fullscreen slideshow.
+#### 4.2 Player - Fill and send code
+1. Open the player link.
+2. Select your name.
+3. Rank all players for each question.
+4. Copy one player code and send it back to the host.
 
-### 5) URL-hash storage model
-- Store game state in the URL hash, compressed in-browser using `deflate-raw`,
-  then base64url-encoded.
-- Maintain a localStorage backup in case the hash is missing.
+#### 4.3 Host - Collect and present
+1. Load the original setup from the URL hash or localStorage.
+2. Add each player code one at a time.
+3. Remove no-shows if the group needs to continue without them.
+4. Generate the reveal link and QR code.
+5. Run the reveal in fullscreen presentation mode.
 
-### 6) Data model (JSON)
-#### 6.1 Game (facilitator state)
+### 5) Storage model
+- Store setup and reveal state in the URL hash, compressed in-browser using `deflate-raw`, then base64url-encoded.
+- Maintain a localStorage backup for the host device.
+- Shared payloads use compact wire formats to keep links and codes short.
+
+### 6) Data model (high level)
+
+#### 6.1 Game (host state)
 ```
 {
-  "version": 1,
-  "gameId": "uuid",
   "title": "string",
-  "createdAt": "ISO-8601",
   "players": [{ "id": "p1", "name": "Alice" }],
-  "questions": [{ "id": "q1", "text": "..." }],
+  "questions": [{ "id": "q1", "text": "...", "presenterId": "p1" }],
   "submissions": {
-    "p1": { "byQuestion": { "q1": ["p3","p2","p1"] } }
+    "p1": { "byQuestion": { "q1": ["p3", "p2", "p1"] } }
   },
   "settings": {
-    "scoring": "simple",
-    "reveal": "rounds"
+    "scoring": "simple"
   }
 }
 ```
 
-#### 6.2 Player submission (encoded into `name:code`)
+#### 6.2 Player submission (encoded into player code)
 ```
 {
-  "version": 1,
-  "gameId": "uuid",
   "playerId": "p1",
-  "submittedAt": "ISO-8601",
+  "gameFingerprint": "short hash",
   "byQuestion": {
-    "q1": ["p3","p2","p1"]
+    "q1": ["p3", "p2", "p1"]
   }
 }
 ```
 
 ### 7) Validation rules
-- Player must choose a **valid playerId** from the setup list.
-- The player UI always starts with a full ranking list and only allows reordering, so each
-  question remains a complete list of playerIds when exported.
-- The app **does not re-validate ranking permutations** when importing codes.
+- The player must choose a valid `playerId` from the setup list.
+- The player UI always starts with a full ranking list and only allows reordering, so each question remains a complete list when exported.
 - Reject import if:
-  - line format is invalid.
-  - `gameId` mismatch.
-  - `playerId` mismatch or already submitted.
-  - payload cannot be decoded.
-- Show clear, blocking error messages (no conflict resolution workflow needed).
+  - the code format is invalid
+  - the payload cannot be decoded
+  - the game fingerprint does not match
+  - the player id is invalid or already submitted
+- Show clear blocking error messages. There is no conflict-resolution workflow.
 
 ### 8) Scoring algorithm
 For a question with `N` players:
-1. Build a **consensus ranking** by averaging each player's rank position across all submissions
-   (lower average = higher consensus rank).
-2. **Weighted** scoring: for each submission, compute the total distance from consensus positions
-   and award `maxDistance - distance` points (clamped at 0).
-3. **Simple** scoring: for each submission, award 1 point for each player placed in the exact
-   same position as the consensus order.
-4. Tie handling: keep stable order by player name (documented).
 
-### 9) Presentation / Reveal
+1. Build a consensus ranking by averaging each player's rank position across all submissions.
+2. **Weighted** scoring computes the total distance from consensus positions and awards `maxDistance - distance`, clamped at `0`.
+3. **Simple** scoring awards `1` point for each exact position match against the consensus order.
+4. Ties are kept stable by player name for deterministic output.
+
+### 9) Presentation and reveal
 - Fullscreen slideshow per question:
-  1. **Presenter prompt**
-  2. **Question** (large text)
-  3. **Ranking reveal** (last → first)
-  4. **Round score**
-  5. **Total score**
+  1. presenter prompt
+  2. question
+  3. ranking reveal
+  4. subtotal checkpoint for earlier questions only
+- Finale:
+  1. finale intro
+  2. final standings and awards
 
 ### 10) Minimal UI surfaces
-- **Setup**: game title, players list, question list, lock game, share link.
-- **Player**: name select → ranking UI → secret code.
-- **Host**: paste codes, completion status, generate reveal link + QR.
+- **Setup**: game title, players list, question list, lock game, player link
+- **Player**: name select, ranking UI, player code
+- **Host**: one-code-at-a-time import, completion status, reveal link, QR
 
-### 11) Privacy / lightweight obfuscation
-- Player codes are compressed and base64url-encoded (not strong encryption).
+### 11) Privacy and lightweight obfuscation
+- Player codes and links are compactly encoded but not strongly encrypted.
 
-### 12) Non-goals (for now)
-- No accounts, no backend, no multiplayer sync.
-- No partial rankings or ties.
-- No advanced conflict resolution.
+### 12) Non-goals
+- No accounts, backend, or multiplayer sync
+- No partial rankings or ties
+- No advanced conflict resolution

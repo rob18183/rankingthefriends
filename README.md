@@ -1,35 +1,98 @@
 # Ranking Your Friends
 
-A playful party game: pick juicy questions, rank each other, and reveal the funniest results round by round.
+Ranking Your Friends is a local-first party game for a host and a group of friends.
 
-## How it works
-1. **Setup**: create a game with players and questions, then lock it.
-2. **Players**: open the link, rank everyone, and copy a short **secret code**.
-3. **Collect**: host pastes codes and generates a **Game Night link + QR**.
-4. **Reveal**: open the Game Night link for a fullscreen slideshow.
+1. The host creates a game with players and questions.
+2. Each player opens a private player link and ranks the group.
+3. Each player sends back one short player code.
+4. The host imports those codes and opens a big-screen reveal.
+
+There are no accounts, no backend, and no real-time sync. Shared state is packed into compact URL hashes and copied codes, with `localStorage` used as a host-side backup.
+
+## Features
+
+- Host-first setup flow with English and Dutch UI
+- Local/offline-friendly sharing through player links and player codes
+- Compact encoding to keep links and codes short
+- Big-screen reveal mode with keyboard shortcuts for presenting
+- Finalized no-show removal
+- Automated node tests, TypeScript checks, and Playwright coverage
 
 ## Quick start
+
 ```bash
 npm install
 npm run dev
 ```
 
-## Production build
+Open the local Vite URL and create a game, or use the built-in demo/reveal flow.
+
+## Scripts
+
 ```bash
-npm run build
-npm run preview
+npm run dev        # local development server
+npm run build      # production bundle
+npm run preview    # preview built bundle
+npm test           # build + node test suite
+npm run typecheck  # TypeScript checks
+npm run test:ui    # Playwright browser tests
+npm run verify     # full local verification pass
 ```
 
-## GitHub Pages deployment
-This app must be served from the **built output** (`dist/`).
+If this is your first Playwright run on the machine:
 
-The GitHub Actions workflow in `.github/workflows/deploy.yml` builds the project and deploys `dist/`
-to GitHub Pages automatically.
+```bash
+npx playwright install chromium
+```
 
-Because GitHub Pages serves the site under a repository subpath: https://rob18183.github.io/rankingthefriends/ the Vite config must set the correct base path:
+## Product flow
+
+### Host
+
+1. Add players and questions in Setup.
+2. Lock the game to generate a player link and backup game code.
+3. Send the player link to the group.
+4. Collect one player code at a time.
+5. Open the reveal link on the big screen.
+
+### Player
+
+1. Open the player link.
+2. Pick your fixed player name.
+3. Rank everyone for each question.
+4. Copy the generated player code and send it back to the host.
+
+### Reveal
+
+Reveal mode is presentation-oriented. It moves through:
+
+1. Presenter prompt
+2. Question
+3. Ranking reveal
+4. Occasional subtotal checkpoints earlier in the game
+5. Finale intro
+6. Final standings and awards
+
+Reveal keyboard shortcuts:
+
+- `Right Arrow` or `Space`: next
+- `Left Arrow` or `Backspace`: back
+
+## Project structure
+
+- [README.md](/data/repos/rankingthefriends/README.md): project overview and setup
+- [docs/README.md](/data/repos/rankingthefriends/docs/README.md): documentation index
+- [app.ts](/data/repos/rankingthefriends/app.ts): app state, rendering, i18n, encoding
+- [game-logic.ts](/data/repos/rankingthefriends/game-logic.ts): scoring and reveal sequencing
+- [tests/](/data/repos/rankingthefriends/tests): node and Playwright coverage
+
+## Deployment
+
+This app must be served from the built `dist/` output. Serving repository source files directly will not execute the TypeScript entrypoint in the browser.
+
+For GitHub Pages, the Vite base path must match the repository subpath:
 
 ```ts
-// vite.config.ts
 import { defineConfig } from "vite";
 
 export default defineConfig(({ mode }) => ({
@@ -37,17 +100,19 @@ export default defineConfig(({ mode }) => ({
 }));
 ```
 
-Without this, asset URLs will resolve incorrectly and the deployed site may appear unstyled or broken.
+The existing GitHub Actions workflow should build and publish `dist/`. If deploying manually:
 
-1. Push to `main`.
-2. In GitHub, set **Settings → Pages → Source** to **GitHub Actions**.
-
-If you serve the repository root without building, the TypeScript entrypoint will not run in the
-browser and the UI will be non-interactive. Always deploy the compiled `dist/` output instead.
+1. Run `npm run build`.
+2. Publish the contents of `dist/`.
 
 ## Documentation
-See `docs/README.md` for architecture, logic, and testing notes.
 
-## Notes
-- No accounts or backend.
-- Data is embedded in URL hashes (compressed), with localStorage backup.
+Start with [docs/README.md](/data/repos/rankingthefriends/docs/README.md). The docs directory includes product notes, architecture references, testing instructions, and roadmap documents.
+
+## Current quality bar
+
+As of March 23, 2026:
+
+- `npm test` passes
+- `npm run typecheck` passes
+- `npm run test:ui` passes
